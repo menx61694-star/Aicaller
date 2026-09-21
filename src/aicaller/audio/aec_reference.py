@@ -48,7 +48,6 @@ class AECReferenceBuffer:
 
     def find_aligned(
         self,
-        *,
         stream_sid: str,
         sequence_number: int | None,
     ) -> NormalizedAudioFrame | None:
