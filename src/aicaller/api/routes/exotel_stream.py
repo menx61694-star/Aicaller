@@ -11,6 +11,7 @@ from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
 from aicaller.audio.output import OutboundAudioPipeline
 from aicaller.audio.pipeline import InboundAudioPipeline
+from aicaller.audio.vad import EnergyVAD, VADConfig
 from aicaller.config import settings
 from aicaller.domain.call import CallState
 from aicaller.services.call_service import CallService
@@ -59,6 +60,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     media_adapter = ExotelMediaAdapter()
     inbound_pipeline = InboundAudioPipeline()
     inbound_normalizer: AudioNormalizer | None = None
+    vad = EnergyVAD(VADConfig())
 
     try:
         while True:
@@ -151,7 +153,9 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     )
                     for item in inbound_frames
                 ]
-                _ = normalized_frames
+                for normalized in normalized_frames:
+                    vad_result = vad.process(normalized)
+                    _ = vad_result
 
             elif event.event_type is ExotelStreamEventType.DTMF:
                 assert event.dtmf is not None
