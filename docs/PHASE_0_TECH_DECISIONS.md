@@ -65,6 +65,13 @@ The project will therefore include:
 
 India's Digital Personal Data Protection Rules, 2025 are published by MeitY, with an enforcement timeline published separately. Exact production obligations will be mapped during the security/privacy phase rather than guessed at this stage.
 
+## Evaluation documents
+
+- Provider/framework evaluation: `docs/PROVIDER_EVALUATION.md`
+- Timeout/failure matrix: `docs/TIMEOUT_FAILURE_MATRIX.md`
+
+These documents record candidate evaluation and provisional engineering budgets. They do not mark provider selection or production readiness complete.
+
 ## Phase 0 status
 
 ### Completed
@@ -75,11 +82,11 @@ India's Digital Personal Data Protection Rules, 2025 are published by MeitY, wit
 - Compliance items added to architecture scope
 
 ### Still required before Phase 0 completion
-- Evaluate telephony providers
-- Evaluate media frameworks
-- Evaluate STT candidates
-- Evaluate LLM candidates
-- Evaluate TTS candidates
+- Evaluate telephony providers — documented; final provider remains open pending real-call India validation
+- Evaluate media frameworks — documented; LiveKit Agents is the primary candidate and Pipecat remains fallback
+- Evaluate STT candidates — architecture supports modular providers; final production STT remains open
+- Evaluate LLM candidates — realtime-model path evaluated; final production model remains open
+- Evaluate TTS candidates — modular interface defined; final production TTS remains open
 - Evaluate backend/runtime options
 - Evaluate database/storage options
 - Evaluate authentication options
