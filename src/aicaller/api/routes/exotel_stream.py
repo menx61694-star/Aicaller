@@ -7,6 +7,7 @@ from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
+from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
 from aicaller.audio.output import OutboundAudioPipeline
 from aicaller.audio.pipeline import InboundAudioPipeline
@@ -57,6 +58,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     outbound_pipeline = OutboundAudioPipeline()
     media_adapter = ExotelMediaAdapter()
     inbound_pipeline = InboundAudioPipeline()
+    inbound_normalizer: AudioNormalizer | None = None
 
     try:
         while True:
@@ -95,6 +97,23 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                 if session.state is CallState.INCOMING:
                     call_service.transition(session.call_id, CallState.RINGING)
 
+                # Exotel AgentStream documents bidirectional media as raw
+                # 16-bit, 8 kHz, mono PCM (little-endian). The START event
+                # sample rate is retained and validated before downstream AI.
+                if event.start.sample_rate is None:
+                    raise ValueError("AgentStream start is missing sample rate")
+                if event.start.encoding not in {None, "base64"}:
+                    raise ValueError(
+                        f"unsupported AgentStream encoding: {event.start.encoding}"
+                    )
+                source_format = AudioFormat(
+                    AudioEncoding.PCM16_LE,
+                    event.start.sample_rate,
+                    channels=1,
+                    sample_width_bytes=2,
+                )
+                inbound_normalizer = AudioNormalizer(source_format)
+
             elif event.event_type is ExotelStreamEventType.MEDIA:
                 assert event.media is not None
                 if (
@@ -123,7 +142,16 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                 # provider-neutral audio engine. Codec normalization, VAD and
                 # AI consumption remain later stages.
                 inbound_frames = inbound_pipeline.ingest(frame)
-                _ = inbound_frames
+                if inbound_normalizer is None:
+                    raise ValueError("audio format is not initialized")
+                normalized_frames = [
+                    inbound_normalizer.normalize(
+                        item,
+                        inbound_normalizer.target_format,
+                    )
+                    for item in inbound_frames
+                ]
+                _ = normalized_frames
 
             elif event.event_type is ExotelStreamEventType.DTMF:
                 assert event.dtmf is not None
