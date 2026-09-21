@@ -70,7 +70,9 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     inbound_pipeline = InboundAudioPipeline()
     inbound_normalizer: AudioNormalizer | None = None
     vad = EnergyVAD(VADConfig())
-    aec_reference = AECReferenceBuffer()\n    aec = NLMSAcousticEchoCanceller()\n    noise_suppressor = AdaptiveNoiseSuppressor(NoiseSuppressionConfig())
+    aec_reference = AECReferenceBuffer()
+    aec = NLMSAcousticEchoCanceller()
+    noise_suppressor = AdaptiveNoiseSuppressor(NoiseSuppressionConfig())
     agc = AutomaticGainController(AGCConfig())
     utterance_buffer = UtteranceBuffer()
 
