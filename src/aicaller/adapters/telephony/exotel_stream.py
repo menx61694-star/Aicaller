@@ -26,6 +26,7 @@ class ExotelStreamStart:
     caller_number: str | None
     destination_number: str | None
     sample_rate: int | None
+    encoding: str | None
 
 
 @dataclass(frozen=True)
@@ -126,6 +127,7 @@ class ExotelStreamAdapter:
             raise ValueError("missing Exotel stream_sid")
 
         sample_rate = media.get("sample_rate")
+        encoding = media.get("encoding")
         try:
             parsed_sample_rate = int(sample_rate) if sample_rate is not None else None
         except (TypeError, ValueError) as exc:
@@ -138,6 +140,7 @@ class ExotelStreamAdapter:
             caller_number=str(start["from"]) if start.get("from") else None,
             destination_number=str(start["to"]) if start.get("to") else None,
             sample_rate=parsed_sample_rate,
+            encoding=str(encoding) if encoding is not None else None,
         )
 
     def parse_media(self, payload: bytes) -> ExotelStreamMedia:
