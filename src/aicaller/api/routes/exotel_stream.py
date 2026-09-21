@@ -7,6 +7,7 @@ from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
+from aicaller.audio.aec import NLMSAcousticEchoCanceller
 from aicaller.audio.aec_reference import AECReferenceBuffer
 from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
@@ -66,7 +67,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     inbound_pipeline = InboundAudioPipeline()
     inbound_normalizer: AudioNormalizer | None = None
     vad = EnergyVAD(VADConfig())
-    aec_reference = AECReferenceBuffer()
+    aec_reference = AECReferenceBuffer()\n    aec = NLMSAcousticEchoCanceller()
 
     try:
         while True:
@@ -162,10 +163,22 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     for item in inbound_frames
                 ]
                 for normalized in normalized_frames:
-                    # Capture/inspect only the far-end audio that was actually
-                    # sent. Delay/alignment must be solved before AEC subtraction.
-                    _ = aec_reference.latest(normalized.stream_sid)
-                    vad_result = vad.process(normalized)
+                    # AEC is applied only when an explicit aligned far-end
+                    # reference exists. We never infer acoustic delay from
+                    # unrelated inbound/outbound sequence numbers.
+                    reference = aec_reference.find_aligned(
+                        stream_sid=normalized.stream_sid,
+                        sequence_number=normalized.sequence_number,
+                    )
+                    aec_frame = (
+                        aec.process(
+                            near_end=normalized,
+                            far_end_reference=reference,
+                        )
+                        if reference is not None
+                        else normalized
+                    )
+                    vad_result = vad.process(aec_frame)
                     _ = vad_result
 
             elif event.event_type is ExotelStreamEventType.DTMF:
