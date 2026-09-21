@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
     app_name: str = "Aicaller"
     app_version: str = "0.1.0"
@@ -13,8 +14,16 @@ class Settings(BaseSettings):
     object_storage_bucket: str = ""
     object_storage_access_key: str = ""
     object_storage_secret_key: str = ""
+    exotel_api_key: str = ""
+    exotel_api_token: str = ""
     ai_provider: str = "openai"
     openai_api_key: str = ""
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="", case_sensitive=False, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
 
 settings = Settings()
