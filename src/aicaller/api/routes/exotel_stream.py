@@ -7,6 +7,7 @@ from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
+from aicaller.audio.aec_reference import AECReferenceBuffer
 from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
 from aicaller.audio.output import OutboundAudioPipeline
@@ -25,6 +26,8 @@ async def flush_outbound_audio(
     websocket: WebSocket,
     pipeline: OutboundAudioPipeline,
     media_adapter: ExotelMediaAdapter,
+    reference_buffer: AECReferenceBuffer,
+    audio_format: AudioFormat | None,
 ) -> int:
     """Send all currently contiguous outbound frames to AgentStream.
 
@@ -39,6 +42,8 @@ async def flush_outbound_audio(
             timestamp_ms=frame.timestamp_ms,
         )
         await websocket.send_text(message)
+        if audio_format is not None:
+            reference_buffer.add(frame, audio_format)
         sent += 1
     return sent
 
@@ -61,6 +66,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     inbound_pipeline = InboundAudioPipeline()
     inbound_normalizer: AudioNormalizer | None = None
     vad = EnergyVAD(VADConfig())
+    aec_reference = AECReferenceBuffer()
 
     try:
         while True:
@@ -69,6 +75,8 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                 websocket,
                 outbound_pipeline,
                 media_adapter,
+                aec_reference,
+                inbound_normalizer.target_format if inbound_normalizer else None,
             )
 
             message = await websocket.receive()
@@ -154,6 +162,9 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     for item in inbound_frames
                 ]
                 for normalized in normalized_frames:
+                    # Capture/inspect only the far-end audio that was actually
+                    # sent. Delay/alignment must be solved before AEC subtraction.
+                    _ = aec_reference.latest(normalized.stream_sid)
                     vad_result = vad.process(normalized)
                     _ = vad_result
 
