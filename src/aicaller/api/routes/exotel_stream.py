@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from aicaller.adapters.telephony.exotel_media import ExotelMediaAdapter
 from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
+from aicaller.audio.output import AudioOutputFrame, OutboundAudioPipeline
 from aicaller.config import settings
 from aicaller.domain.call import CallState
 from aicaller.services.call_service import CallService
@@ -11,6 +15,28 @@ from aicaller.services.call_service import CallService
 router = APIRouter(tags=["telephony"])
 adapter = ExotelStreamAdapter(settings.exotel_api_key, settings.exotel_api_token)
 call_service = CallService()
+
+
+async def flush_outbound_audio(
+    websocket: WebSocket,
+    pipeline: OutboundAudioPipeline,
+    media_adapter: ExotelMediaAdapter,
+) -> int:
+    """Send all currently contiguous outbound frames to AgentStream.
+
+    The caller owns the pipeline. This helper only drains frames that are
+    already queued; it never creates synthetic audio or changes call state.
+    """
+    sent = 0
+    for frame in pipeline.pop_ready():
+        message = media_adapter.encode_media(
+            frame,
+            sequence_number=frame.sequence_number,
+            timestamp_ms=frame.timestamp_ms,
+        )
+        await websocket.send_text(message)
+        sent += 1
+    return sent
 
 
 @router.websocket("/ws/exotel/agentstream")
@@ -24,8 +50,20 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     provider_call_id: str | None = None
     stream_sid: str | None = None
 
+    # Connection-local output state prevents audio from one call leaking into
+    # another call. No output is generated until a later AI/TTS layer enqueues it.
+    outbound_pipeline = OutboundAudioPipeline()
+    media_adapter = ExotelMediaAdapter()
+
     try:
         while True:
+            # Drain only audio explicitly produced by a future realtime layer.
+            await flush_outbound_audio(
+                websocket,
+                outbound_pipeline,
+                media_adapter,
+            )
+
             message = await websocket.receive()
             if message.get("type") == "websocket.disconnect":
                 return
@@ -68,8 +106,8 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     and event.media.stream_sid != stream_sid
                 ):
                     raise ValueError("AgentStream media stream id mismatch")
-                # Audio payload is intentionally preserved but not decoded here.
-                # Phase 2 audio processing consumes this boundary.
+                # Inbound audio continues through the provider-neutral input
+                # pipeline; no outbound audio is fabricated at this boundary.
 
             elif event.event_type is ExotelStreamEventType.DTMF:
                 assert event.dtmf is not None
@@ -79,7 +117,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     and event.dtmf.provider_call_id != provider_call_id
                 ):
                     raise ValueError("AgentStream DTMF call id mismatch")
-                # DTMF is retained at the adapter boundary for the future IVR layer.
+                # DTMF remains at the transport boundary for the future IVR layer.
 
             elif event.event_type is ExotelStreamEventType.STOP:
                 assert event.stop is not None
