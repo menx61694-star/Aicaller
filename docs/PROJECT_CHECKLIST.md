@@ -11,55 +11,55 @@
 - [x] Confirm default branch
 - [x] Confirm current repository size/state
 - [x] Confirm whether existing source code exists
-- [ ] Record existing application structure
-- [ ] Record existing build system
-- [ ] Record existing backend/frontend components
-- [ ] Record existing API integrations
-- [ ] Record existing database/storage integrations
-- [ ] Record existing authentication
-- [ ] Record existing permissions
-- [ ] Record existing CI/CD
-- [ ] Record existing tests
-- [ ] Record existing issues/PRs
-- [ ] Freeze baseline before implementation
+- [x] Record existing application structure — empty baseline
+- [x] Record existing build system — none existed
+- [x] Record existing backend/frontend components — none existed
+- [x] Record existing API integrations — none existed
+- [x] Record existing database/storage integrations — none existed
+- [x] Record existing authentication — none existed
+- [x] Record existing permissions — none existed
+- [x] Record existing CI/CD — none existed
+- [x] Record existing tests — none existed
+- [x] Record existing issues/PRs
+- [x] Freeze baseline before implementation
 
 ### 0.2 Architecture decisions
-- [ ] Telephony provider decision
-- [ ] Call-routing model decision
-- [ ] Media transport decision
-- [ ] Media-server/framework decision
-- [ ] STT decision
-- [ ] LLM decision
-- [ ] TTS decision
-- [ ] VAD decision
-- [ ] Audio processing decision
-- [ ] Backend/runtime decision
-- [ ] Database decision
-- [ ] Audio object-storage decision
-- [ ] Authentication/authorization decision
-- [ ] Notification decision
-- [ ] Calendar/CRM integration strategy
-- [ ] Observability strategy
-- [ ] Security/privacy baseline
-- [ ] Failure/fallback strategy
-- [ ] Cost-control strategy
-- [ ] Testing strategy
+- [x] Telephony provider decision — Exotel AgentStream initial India-first adapter; alternatives retained
+- [x] Call-routing model decision — deterministic call-state machine with policy-driven routing
+- [x] Media transport decision — provider media adapter with WSS/SIP/WebRTC boundary
+- [x] Media-server/framework decision — LiveKit Agents primary; Pipecat fallback
+- [x] STT decision — modular STT interface; realtime-model path primary initially
+- [x] LLM decision — OpenAI Realtime adapter initially; provider abstraction retained
+- [x] TTS decision — realtime model initially; explicit TTS interface retained for cascaded fallback
+- [x] VAD decision — realtime turn detection/VAD initially; standalone VAD remains replaceable
+- [x] Audio processing decision — normalized internal audio, jitter buffer, VAD, interruption, packet-loss handling, noise/gain processing where appropriate
+- [x] Backend/runtime decision — Python + FastAPI + worker service
+- [x] Database decision — PostgreSQL
+- [x] Audio object-storage decision — S3-compatible encrypted object storage
+- [x] Authentication/authorization decision — short-lived tokens + server-side authorization
+- [x] Notification decision — FCM primary; optional adapters later
+- [x] Calendar/CRM integration strategy — adapter-based, confirmation required for external actions
+- [x] Observability strategy — structured logs, metrics, traces, error tracking, call correlation IDs
+- [x] Security/privacy baseline — TLS/WSS, secret isolation, access control, encryption, retention, prompt-injection and sensitive-data controls
+- [x] Failure/fallback strategy — bounded retry, human/voicemail fallback, safe termination
+- [x] Cost-control strategy — per-call duration/model/recording budgets plus daily/monthly limits
+- [x] Testing strategy — unit, integration, E2E, resilience, security and performance gates
 
 ### 0.3 Call-state model
-- [ ] Define every call state
-- [ ] Define every valid state transition
-- [ ] Define transition triggers
-- [ ] Define timeout for every applicable state
-- [ ] Define failure transition for every applicable state
-- [ ] Define human takeover transition
-- [ ] Define call termination transition
-- [ ] Define post-call transition
+- [x] Define every call state
+- [x] Define every valid state transition
+- [x] Define transition triggers
+- [x] Define timeout for every applicable state
+- [x] Define failure transition for every applicable state
+- [x] Define human takeover transition
+- [x] Define call termination transition
+- [x] Define post-call transition
 
 ### 0.4 Baseline verification
-- [ ] Architecture reviewed
-- [ ] Dependencies identified
-- [ ] No unresolved critical architectural contradiction
-- [ ] Phase 0 completion audit performed
+- [x] Architecture reviewed
+- [x] Dependencies identified
+- [x] No unresolved critical architectural contradiction
+- [x] Phase 0 completion audit performed
 
 ## Phase 1 — Telephony Foundation
 - [ ] Virtual/DID number
