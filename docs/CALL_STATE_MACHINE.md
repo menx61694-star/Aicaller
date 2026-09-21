@@ -48,20 +48,33 @@ This is a Phase 0 design artifact. It is intentionally provider-neutral.
 
 ## Timeout matrix
 
-Exact values will be selected after provider testing. No arbitrary fixed production values are accepted yet.
+Initial engineering budgets are documented in docs/TIMEOUT_FAILURE_MATRIX.md:
+- webhook acknowledgement: 2s
+- human ringing: 5–8s configurable
+- AI answer setup: 3s
+- media connection: 2s
+- STT response: 1.5s target
+- LLM first token/audio-ready: 1s target
+- TTS first audio: 0.8s target
+- end-to-end first audio: 2s target
+- barge-in reaction: 250ms target
+- takeover bridge: 3s target
+- reconnect: bounded retry/backoff
+- post-call processing: 30s target
 
-Required timeout entries:
-- webhook acknowledgement
-- human ringing
-- AI answer
-- media connection
-- STT response
-- LLM first token
-- TTS first audio
-- takeover bridge
-- reconnect
-- post-call processing
+These are engineering targets, not provider guarantees. Phase 1 real-call measurements may change them.
+
+## Transition safety rules
+
+1. Provider events are accepted only after signature/session validation.
+2. Each transition uses an atomic compare-and-set or equivalent concurrency guard.
+3. Duplicate events are idempotent.
+4. Events carrying an older sequence/timestamp cannot move state backward.
+5. Only the authoritative call session may mutate call state.
+6. CALL_ENDED is terminal for call-control purposes; post-call processing is asynchronous.
+7. AI output is cancelled and queued audio flushed before HUMAN_CALL is activated.
+8. Every transition emits a structured event containing call_id, old_state, new_state, event_type, timestamp and failure_reason when applicable.
 
 ## Phase 0 status
 
-Design drafted. Implementation is not yet claimed complete.
+**COMPLETE — state model frozen for Phase 1.**
