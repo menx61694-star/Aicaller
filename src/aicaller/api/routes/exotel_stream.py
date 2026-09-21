@@ -7,7 +7,9 @@ from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
-from aicaller.audio.output import AudioOutputFrame, OutboundAudioPipeline
+from aicaller.audio.frame import AudioFrameError, decode_base64_audio
+from aicaller.audio.output import OutboundAudioPipeline
+from aicaller.audio.pipeline import InboundAudioPipeline
 from aicaller.config import settings
 from aicaller.domain.call import CallState
 from aicaller.services.call_service import CallService
