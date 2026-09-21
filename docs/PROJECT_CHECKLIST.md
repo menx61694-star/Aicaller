@@ -82,7 +82,7 @@
 - [ ] Noise suppression
 - [ ] AGC where appropriate
 - [ ] VAD
-- [ ] Packet-loss handling
+- [x] Packet-loss handling — bounded gap policy and explicit silence-frame primitive implemented; integration with jitter release remains pending
 - [ ] Audio buffering
 - [ ] Input pipeline
 - [ ] Output pipeline
