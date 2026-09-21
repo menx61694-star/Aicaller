@@ -85,7 +85,7 @@
 - [x] Packet-loss handling — bounded gap policy and explicit silence-frame primitive implemented; integration with jitter release remains pending
 - [x] Audio buffering — bounded inbound pipeline now buffers, orders, and releases audio frames
 - [x] Input pipeline — provider-neutral inbound frame path implemented before codec/VAD/AI processing
-- [ ] Output pipeline
+- [x] Output pipeline — bounded, sequence-aware provider-neutral outbound audio queue implemented; provider-specific media encoding/sending and real-call verification remain pending
 - [ ] Phase 2 tests — parser and WebSocket tests added; runtime execution and real-call verification pending
 - [ ] Phase 2 completion audit
 
