@@ -75,8 +75,8 @@
 - [ ] Phase 1 completion audit
 
 ## Phase 2 — Real-Time Audio Engine
-- [ ] Media connection
-- [ ] Streaming transport
+- [ ] Media connection — Exotel AgentStream WSS endpoint and authenticated stream boundary implemented; real provider connection still requires account/configuration and runtime verification
+- [ ] Streaming transport — WebSocket receive path implemented for text/binary AgentStream frames; real media streaming verification pending
 - [ ] Jitter buffering
 - [ ] AEC
 - [ ] Noise suppression
@@ -86,7 +86,7 @@
 - [ ] Audio buffering
 - [ ] Input pipeline
 - [ ] Output pipeline
-- [ ] Phase 2 tests
+- [ ] Phase 2 tests — parser and WebSocket tests added; runtime execution and real-call verification pending
 - [ ] Phase 2 completion audit
 
 ## Phase 3 — AI Voice Brain
@@ -179,7 +179,7 @@
 ## Phase 10 — IVR / Spam / Voicemail
 - [ ] Human detection
 - [ ] IVR detection
-- [ ] DTMF detection
+- [ ] DTMF detection — AgentStream DTMF event is now parsed and validated at the transport boundary; IVR behavior is not implemented
 - [ ] Voicemail detection
 - [ ] Automated caller handling
 - [ ] Configurable actions
