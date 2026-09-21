@@ -54,6 +54,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     # another call. No output is generated until a later AI/TTS layer enqueues it.
     outbound_pipeline = OutboundAudioPipeline()
     media_adapter = ExotelMediaAdapter()
+    inbound_pipeline = InboundAudioPipeline()
 
     try:
         while True:
@@ -106,8 +107,21 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     and event.media.stream_sid != stream_sid
                 ):
                     raise ValueError("AgentStream media stream id mismatch")
-                # Inbound audio continues through the provider-neutral input
-                # pipeline; no outbound audio is fabricated at this boundary.
+                try:
+                    frame = decode_base64_audio(
+                        stream_sid=event.media.stream_sid or stream_sid,
+                        sequence_number=event.media.sequence_number,
+                        timestamp=event.media.timestamp,
+                        payload=event.media.payload,
+                    )
+                except AudioFrameError as exc:
+                    raise ValueError(str(exc)) from exc
+
+                # Ordering and bounded packet-loss handling now happen in the
+                # provider-neutral audio engine. Codec normalization, VAD and
+                # AI consumption remain later stages.
+                inbound_frames = inbound_pipeline.ingest(frame)
+                _ = inbound_frames
 
             elif event.event_type is ExotelStreamEventType.DTMF:
                 assert event.dtmf is not None
