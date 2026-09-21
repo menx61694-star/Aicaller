@@ -46,6 +46,23 @@ class AECReferenceBuffer:
                 return frame
         return None
 
+    def find_aligned(
+        self,
+        *,
+        stream_sid: str,
+        sequence_number: int | None,
+    ) -> NormalizedAudioFrame | None:
+        """Return a reference only when the caller explicitly provides alignment."""
+        if sequence_number is None:
+            return None
+        for frame in reversed(self._frames):
+            if (
+                frame.stream_sid == stream_sid
+                and frame.sequence_number == sequence_number
+            ):
+                return frame
+        return None
+
     def clear(self) -> None:
         self._frames.clear()
 
