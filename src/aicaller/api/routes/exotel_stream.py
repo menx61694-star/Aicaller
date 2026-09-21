@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
@@ -11,37 +11,6 @@ from aicaller.services.call_service import CallService
 router = APIRouter(tags=["telephony"])
 adapter = ExotelStreamAdapter(settings.exotel_api_key, settings.exotel_api_token)
 call_service = CallService()
-
-
-@router.post("/webhooks/telephony")
-async def telephony_webhook(request: Request) -> dict[str, str]:
-    from aicaller.adapters.telephony.exotel import ExotelAdapter
-
-    http_adapter = ExotelAdapter()
-    payload = await request.body()
-    headers = {key.lower(): value for key, value in request.headers.items()}
-
-    if not http_adapter.verify_request(payload, headers):
-        raise HTTPException(status_code=401, detail="invalid telephony signature")
-
-    event = http_adapter.parse_event(payload, headers)
-    if not event.provider_call_id:
-        raise HTTPException(status_code=400, detail="missing provider call id")
-
-    if event.event_type is event.event_type.INCOMING_CALL:
-        session = call_service.create_incoming(event.provider_call_id, event.caller_number)
-        call_service.transition(session.call_id, CallState.RINGING)
-    elif event.event_type is event.event_type.HANGUP:
-        session = call_service.get(event.provider_call_id)
-        if session and session.state not in {CallState.CALL_ENDED, CallState.POST_PROCESSING}:
-            if session.state in {
-                CallState.AI_CALL,
-                CallState.HUMAN_CALL,
-                CallState.FAILURE,
-            }:
-                call_service.transition(session.call_id, CallState.CALL_ENDED)
-
-    return {"status": "accepted"}
 
 
 @router.websocket("/ws/exotel/agentstream")
@@ -57,7 +26,19 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
 
     try:
         while True:
-            payload = await websocket.receive_bytes()
+            message = await websocket.receive()
+            if message.get("type") == "websocket.disconnect":
+                return
+
+            raw_bytes = message.get("bytes")
+            raw_text = message.get("text")
+            if raw_bytes is not None:
+                payload = raw_bytes
+            elif raw_text is not None:
+                payload = raw_text.encode("utf-8")
+            else:
+                raise ValueError("AgentStream message has no payload")
+
             event = adapter.parse_event(payload)
 
             if event.event_type is ExotelStreamEventType.START:
@@ -114,7 +95,3 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
         return
     except (ValueError, UnicodeDecodeError):
         await websocket.close(code=1003, reason="invalid AgentStream event")
-    finally:
-        # Stream termination is intentionally not treated as a call hangup.
-        # The authoritative call lifecycle remains driven by telephony events.
-        pass
