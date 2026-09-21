@@ -33,9 +33,10 @@ class PacketLossHandler:
     ) -> bool:
         if next_sequence is None or not buffered_sequences:
             return False
-        highest = max(buffered_sequences)
-        gap = highest - next_sequence
-        return gap >= self.policy.max_gap_frames
+        # Require the configured number of newer frames before declaring
+        # the gap lost. One newer frame can still be ordinary jitter.
+        newer_frames = sum(sequence > next_sequence for sequence in buffered_sequences)
+        return newer_frames >= self.policy.max_gap_frames
 
     def skip_gap(self, next_sequence: int | None) -> int | None:
         if next_sequence is None:
