@@ -11,6 +11,7 @@ from aicaller.audio.aec import NLMSAcousticEchoCanceller
 from aicaller.audio.aec_reference import AECReferenceBuffer
 from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
+from aicaller.audio.noise_suppression import AdaptiveNoiseSuppressor, NoiseSuppressionConfig
 from aicaller.audio.output import OutboundAudioPipeline
 from aicaller.audio.pipeline import InboundAudioPipeline
 from aicaller.audio.vad import EnergyVAD, VADConfig
@@ -67,7 +68,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     inbound_pipeline = InboundAudioPipeline()
     inbound_normalizer: AudioNormalizer | None = None
     vad = EnergyVAD(VADConfig())
-    aec_reference = AECReferenceBuffer()\n    aec = NLMSAcousticEchoCanceller()
+    aec_reference = AECReferenceBuffer()\n    aec = NLMSAcousticEchoCanceller()\n    noise_suppressor = AdaptiveNoiseSuppressor(NoiseSuppressionConfig())
 
     try:
         while True:
@@ -178,7 +179,8 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                         if reference is not None
                         else normalized
                     )
-                    vad_result = vad.process(aec_frame)
+                    denoised_frame = noise_suppressor.process(aec_frame)
+                    vad_result = vad.process(denoised_frame)
                     _ = vad_result
 
             elif event.event_type is ExotelStreamEventType.DTMF:
