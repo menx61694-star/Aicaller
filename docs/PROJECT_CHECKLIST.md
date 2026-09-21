@@ -69,9 +69,9 @@
 - [ ] Human ringing path
 - [ ] AI timeout path
 - [ ] Conditional routing
-- [x] Call-state persistence boundary — repository abstraction implemented; durable PostgreSQL adapter remains pending
+- [x] Call-state persistence boundary — repository interface plus PostgreSQL model/repository and Alembic migration implemented; live DB verification remains pending
 - [x] Telephony error handling — invalid/missing IDs and invalid transitions are rejected; provider-specific failure handling remains pending
-- [x] Phase 1 tests — unit/security tests added; real-provider tests pending
+- [x] Phase 1 tests — unit/security tests added; real-provider and live-PostgreSQL tests pending
 - [ ] Phase 1 completion audit
 
 ## Phase 2 — Real-Time Audio Engine
