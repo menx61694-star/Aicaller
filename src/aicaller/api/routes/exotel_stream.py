@@ -14,6 +14,7 @@ from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
 from aicaller.audio.noise_suppression import AdaptiveNoiseSuppressor, NoiseSuppressionConfig
 from aicaller.audio.output import OutboundAudioPipeline
+from aicaller.audio.utterance import UtteranceBuffer
 from aicaller.audio.pipeline import InboundAudioPipeline
 from aicaller.audio.vad import EnergyVAD, VADConfig
 from aicaller.config import settings
@@ -71,6 +72,7 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     vad = EnergyVAD(VADConfig())
     aec_reference = AECReferenceBuffer()\n    aec = NLMSAcousticEchoCanceller()\n    noise_suppressor = AdaptiveNoiseSuppressor(NoiseSuppressionConfig())
     agc = AutomaticGainController(AGCConfig())
+    utterance_buffer = UtteranceBuffer()
 
     try:
         while True:
@@ -184,7 +186,11 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
                     denoised_frame = noise_suppressor.process(aec_frame)
                     normalized_level_frame = agc.process(denoised_frame)
                     vad_result = vad.process(normalized_level_frame)
-                    _ = vad_result
+                    utterance = utterance_buffer.process(normalized_level_frame, vad_result)
+                    if utterance is not None:
+                        # The completed utterance is the stable hand-off boundary
+                        # for the future STT/Realtime AI stage.
+                        _ = utterance
 
             elif event.event_type is ExotelStreamEventType.DTMF:
                 assert event.dtmf is not None
