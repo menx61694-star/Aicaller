@@ -1,6 +1,8 @@
 import base64
 import json
 
+import pytest
+from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
 
 from aicaller.adapters.telephony.exotel_stream import ExotelStreamAdapter
@@ -13,7 +15,7 @@ def auth_header(key: str, token: str) -> str:
     return f"Basic {value}"
 
 
-def test_agentstream_websocket_accepts_start_media_dtmf_and_stop(monkeypatch) -> None:
+def test_agentstream_websocket_accepts_start_media_dtmf_and_stop() -> None:
     stream_route.adapter = ExotelStreamAdapter("key", "token")
 
     client = TestClient(app)
@@ -71,11 +73,10 @@ def test_agentstream_websocket_rejects_invalid_auth() -> None:
     stream_route.adapter = ExotelStreamAdapter("key", "token")
 
     client = TestClient(app)
-    try:
+    with pytest.raises(WebSocketDisconnect) as exc_info:
         with client.websocket_connect(
             "/api/ws/exotel/agentstream",
             headers={"Authorization": auth_header("key", "wrong")},
         ):
             raise AssertionError("websocket should have been rejected")
-    except Exception as exc:
-        assert "1008" in str(exc) or getattr(exc, "code", None) == 1008
+    assert exc_info.value.code == 1008
