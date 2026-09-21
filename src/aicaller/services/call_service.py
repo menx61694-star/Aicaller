@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from aicaller.domain.call import CallSession, CallState
 from aicaller.domain.transitions import can_transition
-from aicaller.services.call_repository import InMemoryCallRepository
+from aicaller.services.call_repository import CallRepository, InMemoryCallRepository
 
 
 class InvalidCallTransition(Exception):
@@ -10,7 +10,7 @@ class InvalidCallTransition(Exception):
 
 
 class CallService:
-    def __init__(self, repository: InMemoryCallRepository | None = None) -> None:
+    def __init__(self, repository: CallRepository | None = None) -> None:
         self.repository = repository or InMemoryCallRepository()
 
     def create_incoming(self, call_id: str, caller_number: str | None) -> CallSession:
