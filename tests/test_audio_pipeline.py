@@ -27,9 +27,9 @@ def test_pipeline_emits_explicit_silence_after_bounded_gap() -> None:
     assert lost[0].sequence_number == 2
     assert lost[0].payload == b"\x00\x00\x00\x00"
 
-    assert pipeline.ingest(frame(3)) == []
-    assert pipeline.ingest(frame(4)) == []
-    assert pipeline.jitter.next_sequence == 3
+    recovered = pipeline.ingest(frame(3))
+    assert [item.sequence_number for item in recovered] == [3, 4, 5]
+    assert pipeline.jitter.next_sequence == 6
 
 
 def test_pipeline_does_not_mutate_input_frame() -> None:
