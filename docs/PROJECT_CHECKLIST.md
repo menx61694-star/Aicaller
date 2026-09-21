@@ -77,7 +77,7 @@
 ## Phase 2 — Real-Time Audio Engine
 - [ ] Media connection — Exotel AgentStream WSS endpoint and authenticated stream boundary implemented; real provider connection still requires account/configuration and runtime verification
 - [ ] Streaming transport — WebSocket receive path implemented for text/binary AgentStream frames; real media streaming verification pending
-- [ ] Jitter buffering
+- [x] Jitter buffering — bounded sequence-aware buffer implemented; gap recovery policy remains separate
 - [ ] AEC
 - [ ] Noise suppression
 - [ ] AGC where appropriate
