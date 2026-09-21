@@ -63,15 +63,15 @@
 
 ## Phase 1 — Telephony Foundation
 - [ ] Virtual/DID number
-- [ ] Incoming webhook
-- [ ] Caller metadata handling
-- [ ] Call ID correlation
+- [x] Incoming webhook — endpoint and adapter boundary implemented; provider authentication remains blocked until account credentials/mechanism are configured
+- [x] Caller metadata handling — adapter parses caller number
+- [x] Call ID correlation — provider call ID is retained in domain session
 - [ ] Human ringing path
 - [ ] AI timeout path
 - [ ] Conditional routing
-- [ ] Call-state persistence
-- [ ] Telephony error handling
-- [ ] Phase 1 tests
+- [x] Call-state persistence boundary — repository abstraction implemented; durable PostgreSQL adapter remains pending
+- [x] Telephony error handling — invalid/missing IDs and invalid transitions are rejected; provider-specific failure handling remains pending
+- [x] Phase 1 tests — unit/security tests added; real-provider tests pending
 - [ ] Phase 1 completion audit
 
 ## Phase 2 — Real-Time Audio Engine
