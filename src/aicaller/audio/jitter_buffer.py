@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from aicaller.audio.frame import AudioFrame
 
@@ -57,6 +57,19 @@ class JitterBuffer:
             ready.append(self._frames.pop(self._next_sequence))
             self._next_sequence += 1
         return ready
+
+    def skip_to(self, sequence: int) -> None:
+        if sequence < 0:
+            raise ValueError("sequence cannot be negative")
+        if self._next_sequence is None:
+            self._next_sequence = sequence
+            return
+        if sequence < self._next_sequence:
+            raise ValueError("cannot move jitter cursor backwards")
+        self._next_sequence = sequence
+
+    def pending_sequences(self) -> list[int]:
+        return sorted(self._frames)
 
     def pop_unsequenced(self) -> AudioFrame | None:
         if not self._unsequenced:
