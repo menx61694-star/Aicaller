@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import timezone
+
 from sqlalchemy.orm import Session, sessionmaker
 
 from aicaller.domain.call import CallSession, CallState
@@ -14,13 +16,17 @@ class PostgresCallRepository(CallRepository):
         self.session_factory = session_factory
 
     @staticmethod
-    def _to_domain(row: CallSessionModel) -> CallSession:
+    def _utc(value):
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+    @classmethod
+    def _to_domain(cls, row: CallSessionModel) -> CallSession:
         return CallSession(
             call_id=row.call_id,
             caller_number=row.caller_number,
             state=CallState(row.state),
-            created_at=row.created_at,
-            updated_at=row.updated_at,
+            created_at=cls._utc(row.created_at),
+            updated_at=cls._utc(row.updated_at),
             failure_reason=row.failure_reason,
             provider_call_id=row.provider_call_id,
             last_provider_event=row.last_provider_event,
