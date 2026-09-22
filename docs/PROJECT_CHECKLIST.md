@@ -82,7 +82,7 @@
 - [ ] Noise suppression
 - [ ] AGC where appropriate
 - [ ] VAD
-- [x] Packet-loss handling — bounded gap policy and explicit silence-frame primitive implemented; integration with jitter release remains pending
+- [x] Packet-loss handling — bounded gap policy, explicit silence-frame primitive, and jitter-pipeline integration implemented and covered by CI-verified tests; real-media runtime verification remains pending
 - [x] Audio buffering — bounded inbound pipeline now buffers, orders, and releases audio frames
 - [x] Input pipeline — provider-neutral inbound frame path implemented before codec/VAD/AI processing
 - [x] Output pipeline — bounded, sequence-aware provider-neutral outbound audio queue implemented; provider-specific media encoding/sending and real-call verification remain pending
