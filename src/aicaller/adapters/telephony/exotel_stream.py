@@ -97,7 +97,7 @@ class ExotelStreamAdapter:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ValueError("invalid AgentStream JSON") from exc
         if not isinstance(data, dict):
-            raise ValueError("AgentStream event must be a JSON object")
+            raise TypeError("AgentStream event must be a JSON object")
         return data
 
     @staticmethod
@@ -114,10 +114,10 @@ class ExotelStreamAdapter:
 
         start = data.get("start") or {}
         if not isinstance(start, dict):
-            raise ValueError("invalid AgentStream start object")
+            raise TypeError("invalid AgentStream start object")
         media = start.get("media_format") or {}
         if not isinstance(media, dict):
-            raise ValueError("invalid AgentStream media_format object")
+            raise TypeError("invalid AgentStream media_format object")
 
         call_id = str(start.get("call_sid") or "")
         stream_sid = str(start.get("stream_sid") or data.get("stream_sid") or "")
@@ -149,7 +149,7 @@ class ExotelStreamAdapter:
             raise ValueError("expected Exotel AgentStream media event")
         media = data.get("media") or {}
         if not isinstance(media, dict):
-            raise ValueError("invalid AgentStream media object")
+            raise TypeError("invalid AgentStream media object")
         audio_payload = media.get("payload")
         if not isinstance(audio_payload, str) or not audio_payload:
             raise ValueError("missing AgentStream media payload")
@@ -168,7 +168,7 @@ class ExotelStreamAdapter:
             raise ValueError("expected Exotel AgentStream stop event")
         stop = data.get("stop") or {}
         if not isinstance(stop, dict):
-            raise ValueError("invalid AgentStream stop object")
+            raise TypeError("invalid AgentStream stop object")
         return ExotelStreamStop(
             stream_sid=str(data["stream_sid"]) if data.get("stream_sid") else None,
             provider_call_id=str(data["call_sid"]) if data.get("call_sid") else None,
@@ -181,7 +181,7 @@ class ExotelStreamAdapter:
             raise ValueError("expected Exotel AgentStream dtmf event")
         dtmf = data.get("dtmf") or {}
         if not isinstance(dtmf, dict):
-            raise ValueError("invalid AgentStream dtmf object")
+            raise TypeError("invalid AgentStream dtmf object")
         digit = str(dtmf.get("digit") or "")
         if not digit:
             raise ValueError("missing AgentStream dtmf digit")
