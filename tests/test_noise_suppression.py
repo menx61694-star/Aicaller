@@ -46,3 +46,24 @@ def test_noise_suppressor_rejects_unsupported_format() -> None:
     bad = NormalizedAudioFrame("stream-1", 1, 20, b"\x00", bad_format)
     with pytest.raises(NoiseSuppressionError):
         suppressor.process(bad)
+
+def test_noise_suppressor_adapts_floor_only_on_low_energy_frames() -> None:
+    suppressor = AdaptiveNoiseSuppressor(
+        NoiseSuppressionConfig(initial_noise_rms=0.05, adaptation_rate=0.5)
+    )
+    initial = suppressor.noise_rms
+    suppressor.process(frame(1000))
+    after_noise = suppressor.noise_rms
+    assert after_noise < initial
+
+    suppressor.process(frame(20000))
+    assert suppressor.noise_rms == after_noise
+
+
+def test_noise_suppressor_keeps_silence_bounded() -> None:
+    suppressor = AdaptiveNoiseSuppressor(
+        NoiseSuppressionConfig(initial_noise_rms=0.05, minimum_gain=0.1)
+    )
+    result = suppressor.process(frame(0))
+    assert set(result.payload) == {0}
+\n
