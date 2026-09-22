@@ -1,5 +1,9 @@
 import json
 
+
+class ExotelHumanRingNotConfigured(RuntimeError):
+    """Raised until the account-specific Exotel bridge/transfer is configured."""
+
 from aicaller.adapters.telephony.base import TelephonyEvent, TelephonyEventType
 
 
@@ -8,6 +12,16 @@ class ExotelAdapter:
 
     def verify_request(self, payload: bytes, headers: dict[str, str]) -> bool:
         return False
+
+    def start_human_ring(self, provider_call_id: str, destination: str) -> None:
+        raise ExotelHumanRingNotConfigured(
+            "Exotel human-ring bridge requires account-specific flow configuration"
+        )
+
+    def stop_human_ring(self, provider_call_id: str) -> None:
+        raise ExotelHumanRingNotConfigured(
+            "Exotel human-ring bridge requires account-specific flow configuration"
+        )
 
     def parse_event(self, payload: bytes, headers: dict[str, str]) -> TelephonyEvent:
         data = json.loads(payload.decode("utf-8"))
