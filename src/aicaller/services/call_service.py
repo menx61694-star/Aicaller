@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aicaller.domain.call import CallSession, CallState
 from aicaller.domain.transitions import can_transition
@@ -35,7 +35,7 @@ class CallService:
             caller_number=current.caller_number,
             state=target,
             created_at=current.created_at,
-            updated_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(UTC),
             failure_reason=failure_reason,
             provider_call_id=current.provider_call_id,
             last_provider_event=current.last_provider_event,
