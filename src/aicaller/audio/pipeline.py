@@ -4,7 +4,11 @@ from dataclasses import dataclass
 
 from aicaller.audio.frame import AudioFrame
 from aicaller.audio.jitter_buffer import JitterBuffer, JitterBufferConfig
-from aicaller.audio.packet_loss import PacketLossHandler, PacketLossPolicy, silence_frame
+from aicaller.audio.packet_loss import (
+    PacketLossHandler,
+    PacketLossPolicy,
+    silence_frame,
+)
 
 
 @dataclass(frozen=True)
