@@ -57,3 +57,38 @@ def test_aec_rejects_mismatched_frame_lengths() -> None:
             near_end=frame(pcm16(1, 2)),
             far_end_reference=frame(pcm16(1)),
         )
+
+def test_aec_rejects_non_pcm16_format() -> None:
+    aec = NLMSAcousticEchoCanceller()
+    near = NormalizedAudioFrame(
+        stream_sid="stream-1",
+        sequence_number=1,
+        timestamp_ms=0,
+        payload=b"\x00\x00",
+        format=AudioFormat(AudioEncoding.MULAW, 8000, sample_width_bytes=1),
+    )
+    with pytest.raises(AECError, match="PCM16_LE"):
+        aec.process(near_end=near, far_end_reference=near)
+
+
+def test_aec_rejects_non_mono_format() -> None:
+    aec = NLMSAcousticEchoCanceller()
+    near = NormalizedAudioFrame(
+        stream_sid="stream-1",
+        sequence_number=1,
+        timestamp_ms=0,
+        payload=pcm16(1),
+        format=AudioFormat(AudioEncoding.PCM16_LE, 8000, channels=1),
+    )
+    reference = NormalizedAudioFrame(
+        stream_sid="stream-1",
+        sequence_number=1,
+        timestamp_ms=0,
+        payload=pcm16(1),
+        format=near.format,
+    )
+    # The provider-neutral AudioFormat currently enforces mono, so this test
+    # documents that AEC receives only a supported normalized format.
+    result = aec.process(near_end=near, far_end_reference=reference)
+    assert result.format == near.format
+
