@@ -9,13 +9,16 @@ from aicaller.adapters.telephony.exotel_stream import (
 )
 from aicaller.audio.aec import NLMSAcousticEchoCanceller
 from aicaller.audio.aec_reference import AECReferenceBuffer
-from aicaller.audio.agc import AutomaticGainController, AGCConfig
+from aicaller.audio.agc import AGCConfig, AutomaticGainController
 from aicaller.audio.format import AudioEncoding, AudioFormat, AudioNormalizer
 from aicaller.audio.frame import AudioFrameError, decode_base64_audio
-from aicaller.audio.noise_suppression import AdaptiveNoiseSuppressor, NoiseSuppressionConfig
+from aicaller.audio.noise_suppression import (
+    AdaptiveNoiseSuppressor,
+    NoiseSuppressionConfig,
+)
 from aicaller.audio.output import OutboundAudioPipeline
-from aicaller.audio.utterance import UtteranceBuffer
 from aicaller.audio.pipeline import InboundAudioPipeline
+from aicaller.audio.utterance import UtteranceBuffer
 from aicaller.audio.vad import EnergyVAD, VADConfig
 from aicaller.config import settings
 from aicaller.domain.call import CallState
