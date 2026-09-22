@@ -3,7 +3,6 @@ from aicaller.audio.utterance import UtteranceBuffer
 from aicaller.audio.vad import VADResult
 
 
-
 FMT = AudioFormat(AudioEncoding.PCM16_LE, 8000)
 
 
