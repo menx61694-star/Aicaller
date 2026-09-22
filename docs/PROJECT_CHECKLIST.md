@@ -78,7 +78,7 @@
 - [ ] Media connection — Exotel AgentStream WSS endpoint and authenticated stream boundary implemented; real provider connection still requires account/configuration and runtime verification
 - [ ] Streaming transport — WebSocket receive path implemented for text/binary AgentStream frames; real media streaming verification pending
 - [x] Jitter buffering — bounded sequence-aware buffer implemented; gap recovery policy remains separate
-- [ ] AEC
+- [x] AEC — deterministic mono PCM16 NLMS canceller implemented, explicitly aligned reference-buffer integration wired into the inbound path, and CI-covered format/echo/error tests; real acoustic/provider runtime verification remains pending
 - [ ] Noise suppression
 - [ ] AGC where appropriate
 - [ ] VAD
