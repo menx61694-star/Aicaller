@@ -5,9 +5,9 @@ import pytest
 from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
 
+import aicaller.api.routes.exotel_stream as stream_route
 from aicaller.adapters.telephony.exotel_stream import ExotelStreamAdapter
 from aicaller.main import app
-import aicaller.api.routes.exotel_stream as stream_route
 
 
 def auth_header(key: str, token: str) -> str:
@@ -73,10 +73,9 @@ def test_agentstream_websocket_rejects_invalid_auth() -> None:
     stream_route.adapter = ExotelStreamAdapter("key", "token")
 
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect) as exc_info:
-        with client.websocket_connect(
-            "/api/ws/exotel/agentstream",
-            headers={"Authorization": auth_header("key", "wrong")},
-        ):
-            raise AssertionError("websocket should have been rejected")
+    with pytest.raises(WebSocketDisconnect) as exc_info, client.websocket_connect(
+        "/api/ws/exotel/agentstream",
+        headers={"Authorization": auth_header("key", "wrong")},
+    ):
+        raise AssertionError("websocket should have been rejected")
     assert exc_info.value.code == 1008
