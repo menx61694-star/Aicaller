@@ -2,7 +2,11 @@ import pytest
 
 from aicaller.domain.call import CallState
 from aicaller.services.call_repository import InMemoryCallRepository
-from aicaller.services.call_routing import CallRoutingService, RoutingPolicy, RouteTarget
+from aicaller.services.call_routing import (
+    CallRoutingService,
+    RouteTarget,
+    RoutingPolicy,
+)
 from aicaller.services.call_service import CallService
 
 
