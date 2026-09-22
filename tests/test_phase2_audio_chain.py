@@ -1,6 +1,6 @@
 from aicaller.audio.aec import NLMSAcousticEchoCanceller
-from aicaller.audio.agc import AutomaticGainController
 from aicaller.audio.aec_reference import AECReferenceBuffer
+from aicaller.audio.agc import AutomaticGainController
 from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFrame
 from aicaller.audio.noise_suppression import AdaptiveNoiseSuppressor
 from aicaller.audio.utterance import UtteranceBuffer
