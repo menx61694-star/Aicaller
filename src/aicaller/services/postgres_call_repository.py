@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from datetime import timezone
+from datetime import UTC
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from aicaller.db.models import CallSessionModel
 from aicaller.domain.call import CallSession, CallState
 from aicaller.services.call_repository import CallRepository
-from aicaller.db.models import CallSessionModel
 
 
 class PostgresCallRepository(CallRepository):
@@ -17,7 +17,7 @@ class PostgresCallRepository(CallRepository):
 
     @staticmethod
     def _utc(value):
-        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value
 
     @classmethod
     def _to_domain(cls, row: CallSessionModel) -> CallSession:
