@@ -8,7 +8,10 @@ from aicaller.services.call_service import CallService
 
 def service() -> CallRoutingService:
     calls = CallService(InMemoryCallRepository())
-    return CallRoutingService(calls, RoutingPolicy(human_ring_seconds=5, ai_answer_timeout_seconds=3))
+    return CallRoutingService(
+        calls,
+        RoutingPolicy(human_ring_seconds=5, ai_answer_timeout_seconds=3),
+    )
 
 
 def test_human_route_and_ai_timeout() -> None:
