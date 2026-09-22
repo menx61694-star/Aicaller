@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from aicaller.main import app
 
-
 client = TestClient(app)
 
 
