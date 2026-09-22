@@ -94,6 +94,6 @@ class AdaptiveNoiseSuppressor:
         output = bytearray()
         for offset in range(0, len(payload), 2):
             sample = int.from_bytes(payload[offset:offset + 2], "little", signed=True)
-            value = max(-32768, min(32767, int(round(sample * gain))))
+            value = max(-32768, min(32767, round(sample * gain)))
             output.extend(value.to_bytes(2, "little", signed=True))
         return bytes(output)
