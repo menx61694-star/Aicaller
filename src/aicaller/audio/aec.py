@@ -52,7 +52,7 @@ class NLMSAcousticEchoCanceller:
         output = bytearray()
         for sample in samples:
             clipped = max(-1.0, min(0.999969482421875, sample))
-            value = int(round(clipped * 32768.0))
+            value = round(clipped * 32768.0)
             output.extend(value.to_bytes(2, "little", signed=True))
         return bytes(output)
 
