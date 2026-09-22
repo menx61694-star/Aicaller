@@ -27,7 +27,7 @@ def test_phase2_audio_processing_chain_preserves_frame_boundary() -> None:
     aligned = reference.find_aligned("stream-1", 1)
     assert aligned is not None
 
-    aec_frame = NLMSAcousticEchoCanceller().process(source, aligned)
+    aec_frame = NLMSAcousticEchoCanceller().process(near_end=source, far_end_reference=aligned)
     denoised = AdaptiveNoiseSuppressor().process(aec_frame)
     leveled = AutomaticGainController().process(denoised)
     vad = EnergyVAD(VADConfig(min_speech_frames=1, min_silence_frames=2))
