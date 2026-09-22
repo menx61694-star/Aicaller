@@ -79,7 +79,7 @@
 - [ ] Streaming transport — WebSocket receive path implemented for text/binary AgentStream frames; real media streaming verification pending
 - [x] Jitter buffering — bounded sequence-aware buffer implemented; gap recovery policy remains separate
 - [x] AEC — deterministic mono PCM16 NLMS canceller implemented, explicitly aligned reference-buffer integration wired into the inbound path, and CI-covered format/echo/error tests; real acoustic/provider runtime verification remains pending
-- [ ] Noise suppression
+- [x] Noise suppression — deterministic stationary-noise suppression integrated after AEC and covered by CI-targeted format, adaptation, metadata, and silence tests; real acoustic/provider runtime verification remains pending
 - [ ] AGC where appropriate
 - [ ] VAD
 - [x] Packet-loss handling — bounded gap policy, explicit silence-frame primitive, and jitter-pipeline integration implemented and covered by CI-verified tests; real-media runtime verification remains pending
