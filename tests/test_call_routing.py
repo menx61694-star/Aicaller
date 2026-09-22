@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 
 from aicaller.domain.call import CallState
@@ -53,3 +55,72 @@ def test_ai_timeout_fails_call() -> None:
 def test_invalid_policy_rejected() -> None:
     with pytest.raises(ValueError):
         RoutingPolicy(ai_answer_timeout_seconds=0)
+
+
+def test_initial_route_respects_policy() -> None:
+    routing = service()
+    call = routing.call_service.create_incoming("call-4", "+914")
+    routing.call_service.transition(call.call_id, CallState.RINGING)
+
+    result = routing.route_initial(call.call_id)
+    assert result.state is CallState.HUMAN_CALL
+
+
+def test_human_timeout_is_time_based() -> None:
+    routing = service()
+    call = routing.call_service.create_incoming("call-5", "+915")
+    routing.call_service.transition(call.call_id, CallState.RINGING)
+    routing.start_human_ring(call.call_id)
+    session = routing.call_service.get(call.call_id)
+    assert session is not None
+
+    result = routing.evaluate_timeout(
+        call.call_id,
+        session.updated_at + timedelta(seconds=5),
+    )
+    assert result is not None
+    assert result.state is CallState.AI_ANSWERING
+
+
+def test_ai_timeout_is_time_based() -> None:
+    routing = service()
+    call = routing.call_service.create_incoming("call-6", "+916")
+    routing.call_service.transition(call.call_id, CallState.RINGING)
+    routing.start_ai_answering(call.call_id)
+    session = routing.call_service.get(call.call_id)
+    assert session is not None
+
+    result = routing.evaluate_timeout(
+        call.call_id,
+        session.updated_at + timedelta(seconds=3),
+    )
+    assert result is not None
+    assert result.state is CallState.FAILURE
+    assert result.failure_reason == "AI_ANSWER_TIMEOUT"
+
+
+def test_timeout_evaluation_does_not_transition_early() -> None:
+    routing = service()
+    call = routing.call_service.create_incoming("call-7", "+917")
+    routing.call_service.transition(call.call_id, CallState.RINGING)
+    routing.start_ai_answering(call.call_id)
+    session = routing.call_service.get(call.call_id)
+    assert session is not None
+
+    result = routing.evaluate_timeout(
+        call.call_id,
+        session.updated_at + timedelta(seconds=2),
+    )
+    assert result is None
+    assert routing.call_service.get(call.call_id).state is CallState.AI_ANSWERING
+
+
+def test_timeout_clock_cannot_move_backwards() -> None:
+    routing = service()
+    call = routing.call_service.create_incoming("call-8", "+918")
+    routing.call_service.transition(call.call_id, CallState.RINGING)
+    session = routing.call_service.get(call.call_id)
+    assert session is not None
+
+    with pytest.raises(ValueError):
+        routing.evaluate_timeout(call.call_id, session.updated_at - timedelta(seconds=1))
