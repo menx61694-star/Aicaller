@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     exotel_api_token: str = ""
     ai_provider: str = "openai"
     openai_api_key: str = ""
+    human_ring_seconds: float = 7.0
+    ai_answer_timeout_seconds: float = 3.0
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="",
