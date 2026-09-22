@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -14,7 +14,7 @@ def test_repository_round_trip_with_relational_database() -> None:
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     repository = PostgresCallRepository(factory)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     session = CallSession(
         call_id="call-123",
         caller_number="+919999999999",
