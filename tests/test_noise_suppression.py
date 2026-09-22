@@ -8,6 +8,7 @@ from aicaller.audio.noise_suppression import (
 )
 
 
+
 FMT = AudioFormat(AudioEncoding.PCM16_LE, 8000)
 
 
