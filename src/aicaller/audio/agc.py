@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from aicaller.audio.format import AudioEncoding, NormalizedAudioFrame
 
@@ -78,6 +78,6 @@ class AutomaticGainController:
         out = bytearray()
         for i in range(0, len(payload), 2):
             value = int.from_bytes(payload[i:i+2], "little", signed=True)
-            value = max(-32768, min(32767, int(round(value * gain))))
+            value = max(-32768, min(32767, round(value * gain)))
             out.extend(value.to_bytes(2, "little", signed=True))
         return bytes(out)
