@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 
 
@@ -28,5 +28,5 @@ class CallSession:
 
     @classmethod
     def incoming(cls, call_id: str, caller_number: str | None, provider_call_id: str | None = None) -> "CallSession":
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return cls(call_id, caller_number, CallState.INCOMING, now, now, provider_call_id=provider_call_id)
