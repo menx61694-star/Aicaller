@@ -4,8 +4,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from aicaller.config import settings
-from aicaller.db.base import Base
 from aicaller.db import models  # noqa: F401
+from aicaller.db.base import Base
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url or "postgresql+psycopg://placeholder:placeholder@localhost/placeholder")
