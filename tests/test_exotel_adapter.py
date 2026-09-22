@@ -1,7 +1,7 @@
 import json
 
-from aicaller.adapters.telephony.exotel import ExotelAdapter
 from aicaller.adapters.telephony.base import TelephonyEventType
+from aicaller.adapters.telephony.exotel import ExotelAdapter
 
 
 def test_parse_incoming_event():
