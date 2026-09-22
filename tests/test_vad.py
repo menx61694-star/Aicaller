@@ -4,7 +4,6 @@ from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFra
 from aicaller.audio.vad import EnergyVAD, VADConfig, VADError
 
 
-
 FMT = AudioFormat(AudioEncoding.PCM16_LE, 8000)
 
 
