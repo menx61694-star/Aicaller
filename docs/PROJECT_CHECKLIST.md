@@ -66,7 +66,7 @@
 - [x] Incoming webhook — endpoint and adapter boundary implemented; provider authentication remains blocked until account credentials/mechanism are configured
 - [x] Caller metadata handling — adapter parses caller number
 - [x] Call ID correlation — provider call ID is retained in domain session
-- [ ] Human ringing path
+- [ ] Human ringing path — provider-neutral action boundary implemented; actual Exotel human bridge/transfer remains blocked pending account-specific flow configuration and runtime verification
 - [x] AI timeout path — deterministic timeout evaluation and failure transition implemented and covered by CI-verified tests; live worker/provider execution remains pending
 - [x] Conditional routing — policy-driven initial human/AI target selection implemented and covered by CI-verified tests
 - [x] Call-state persistence boundary — repository interface plus PostgreSQL model/repository and Alembic migration implemented; live DB verification remains pending
