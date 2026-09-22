@@ -3,7 +3,10 @@ import json
 import pytest
 
 from aicaller.adapters.telephony.base import TelephonyEventType
-from aicaller.adapters.telephony.exotel import ExotelAdapter, ExotelHumanRingNotConfigured
+from aicaller.adapters.telephony.exotel import (
+    ExotelAdapter,
+    ExotelHumanRingNotConfigured,
+)
 
 
 def test_parse_incoming_event():
