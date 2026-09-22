@@ -1,7 +1,9 @@
 import json
 
+import pytest
+
 from aicaller.adapters.telephony.base import TelephonyEventType
-from aicaller.adapters.telephony.exotel import ExotelAdapter
+from aicaller.adapters.telephony.exotel import ExotelAdapter, ExotelHumanRingNotConfigured
 
 
 def test_parse_incoming_event():
@@ -15,3 +17,11 @@ def test_parse_incoming_event():
 
 def test_exotel_adapter_is_fail_closed_before_auth_config():
     assert ExotelAdapter().verify_request(b"{}", {}) is False
+
+
+def test_exotel_human_ring_fails_closed_until_bridge_is_configured():
+    adapter = ExotelAdapter()
+    with pytest.raises(ExotelHumanRingNotConfigured):
+        adapter.start_human_ring("ex-1", "+91123")
+    with pytest.raises(ExotelHumanRingNotConfigured):
+        adapter.stop_human_ring("ex-1")
