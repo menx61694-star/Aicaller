@@ -80,7 +80,7 @@
 - [x] Jitter buffering — bounded sequence-aware buffer implemented; gap recovery policy remains separate
 - [x] AEC — deterministic mono PCM16 NLMS canceller implemented, explicitly aligned reference-buffer integration wired into the inbound path, and CI-covered format/echo/error tests; real acoustic/provider runtime verification remains pending
 - [x] Noise suppression — deterministic stationary-noise suppression integrated after AEC and covered by CI-targeted format, adaptation, metadata, and silence tests; real acoustic/provider runtime verification remains pending
-- [ ] AGC where appropriate
+- [x] AGC where appropriate — bounded PCM16 mono frame-level gain control is integrated after noise suppression and before VAD, with gain-bound, attenuation-bound, metadata, and malformed-format tests; real acoustic/provider runtime verification remains pending
 - [ ] VAD
 - [x] Packet-loss handling — bounded gap policy, explicit silence-frame primitive, and jitter-pipeline integration implemented and covered by CI-verified tests; real-media runtime verification remains pending
 - [x] Audio buffering — bounded inbound pipeline now buffers, orders, and releases audio frames
