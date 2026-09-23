@@ -37,9 +37,11 @@ def test_parse_partial_and_final_events() -> None:
         json.dumps({
             "type": "conversation.item.input_audio_transcription.completed",
             "transcript": "hello world",
+            "language": "en",
         }),
         stream_sid="stream-1",
         sequence=2,
     )
     assert partial is not None and not partial.is_final
     assert final is not None and final.is_final
+    assert final.language == "en"
