@@ -75,4 +75,5 @@ class OpenAIRealtimeAdapter:
             text=text,
             is_final=event_type.endswith(".completed"),
             sequence=sequence,
+            language=language,
         )
