@@ -23,7 +23,9 @@ def test_session_updates_transcript_state() -> None:
     result = session.consume_event(json.dumps({
         "type": "conversation.item.input_audio_transcription.completed",
         "transcript": "hello",
+        "language": "hi",
     }))
     assert result is not None
     assert result.is_final
+    assert result.language == "hi"
     assert session.transcript.final_text == "hello"
