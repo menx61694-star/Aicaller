@@ -13,6 +13,7 @@ class TranscriptUpdate:
     text: str
     is_final: bool
     sequence: int
+    language: str | None = None
 
 
 class TranscriptState:
