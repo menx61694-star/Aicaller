@@ -66,4 +66,3 @@ def test_noise_suppressor_keeps_silence_bounded() -> None:
     )
     result = suppressor.process(frame(0))
     assert set(result.payload) == {0}
-\n
