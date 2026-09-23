@@ -66,6 +66,10 @@ class OpenAIRealtimeAdapter:
         if not isinstance(text, str) or not text.strip():
             return None
 
+        language = data.get("language")
+        if language is not None and not isinstance(language, str):
+            raise RealtimeProtocolError("realtime language must be a string")
+
         return TranscriptUpdate(
             stream_sid=stream_sid,
             text=text,
