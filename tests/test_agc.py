@@ -59,4 +59,3 @@ def test_agc_rejects_malformed_pcm16() -> None:
     agc = AutomaticGainController()
     with pytest.raises(AGCError, match="complete samples"):
         agc.process(NormalizedAudioFrame("stream-1", 1, 20, b"\\x00", FMT))
-\n
