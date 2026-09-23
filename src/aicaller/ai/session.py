@@ -17,6 +17,7 @@ class AITranscriptEvent:
     text: str
     is_final: bool
     sequence: int
+    language: str | None = None
 
 
 class RealtimeAISession:
@@ -61,4 +62,5 @@ class RealtimeAISession:
             text=update.text,
             is_final=update.is_final,
             sequence=update.sequence,
+            language=update.language,
         )
