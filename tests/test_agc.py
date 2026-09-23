@@ -37,3 +37,26 @@ def test_agc_rejects_non_pcm16() -> None:
     fmt = AudioFormat(AudioEncoding.MULAW, 8000, sample_width_bytes=1)
     with pytest.raises(AGCError):
         agc.process(NormalizedAudioFrame("stream-1", 1, 20, b"\x00", fmt))
+
+def test_agc_never_exceeds_configured_max_gain() -> None:
+    agc = AutomaticGainController(
+        AGCConfig(target_rms=0.5, min_gain=0.25, max_gain=2.0, adaptation_rate=1.0)
+    )
+    result = agc.process(frame(100))
+    assert agc.gain == 2.0
+    assert rms(result.payload) <= rms(frame(100).payload) * 2.01
+
+
+def test_agc_limits_attenuation_to_min_gain() -> None:
+    agc = AutomaticGainController(
+        AGCConfig(target_rms=0.01, min_gain=0.5, max_gain=2.0, adaptation_rate=1.0)
+    )
+    agc.process(frame(32000))
+    assert agc.gain == 0.5
+
+
+def test_agc_rejects_malformed_pcm16() -> None:
+    agc = AutomaticGainController()
+    with pytest.raises(AGCError, match="complete samples"):
+        agc.process(NormalizedAudioFrame("stream-1", 1, 20, b"\\x00", FMT))
+\n
