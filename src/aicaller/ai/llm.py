@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import AsyncIterator, Protocol
 
 
 class LLMError(RuntimeError):
@@ -28,7 +28,7 @@ class UnconfiguredStreamingLLM:
     async def stream(
         self,
         messages: tuple[tuple[str, str], ...],
-    ):
+    ) -> AsyncIterator[LLMDelta]:
         raise LLMError("streaming LLM provider is not configured")
 
 
