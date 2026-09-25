@@ -19,7 +19,7 @@ class StreamingLLM(Protocol):
     async def stream(
         self,
         messages: tuple[tuple[str, str], ...],
-    ) -> "AsyncIterator[LLMDelta]": ...
+    ) -> AsyncIterator[LLMDelta]: ...
 
 
 class UnconfiguredStreamingLLM:
