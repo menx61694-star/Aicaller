@@ -52,3 +52,17 @@ def test_output_pipeline_pop_limit_preserves_remaining_order() -> None:
         pipeline.enqueue(frame(sequence))
     assert [item.sequence_number for item in pipeline.pop_ready(limit=2)] == [1, 2]
     assert [item.sequence_number for item in pipeline.pop_ready()] == [3]
+
+def test_output_pipeline_flush_discards_pending_tts_audio_and_allows_new_sequence() -> None:
+    pipeline = OutboundAudioPipeline()
+    pipeline.enqueue(frame(10, b"stale-a"))
+    pipeline.enqueue(frame(11, b"stale-b"))
+
+    flushed = pipeline.flush()
+
+    assert [item.payload for item in flushed] == [b"stale-a", b"stale-b"]
+    assert pipeline.pending_count == 0
+    assert pipeline.next_sequence is None
+
+    assert pipeline.enqueue(frame(100, b"fresh")) == "queued"
+    assert [item.payload for item in pipeline.pop_ready()] == [b"fresh"]
