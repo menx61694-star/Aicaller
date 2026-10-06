@@ -94,12 +94,21 @@ class OutboundAudioPipeline:
             raise ValueError("cannot move output cursor backwards")
         self._next_sequence = sequence
 
-    def clear(self) -> list[AudioOutputFrame]:
+    def flush(self) -> list[AudioOutputFrame]:
+        """Discard all pending outbound audio for an interruption.
+
+        Flushing also resets the output cursor so a newly generated TTS
+        response can start a fresh sequence without replaying stale audio.
+        """
         frames = [self._frames[key] for key in sorted(self._frames)]
         self._frames.clear()
         self._unsequenced.clear()
         self._next_sequence = None
         return frames
+
+    def clear(self) -> list[AudioOutputFrame]:
+        """Clear the queue outside an interruption flow."""
+        return self.flush()
 
     @property
     def pending_count(self) -> int:
