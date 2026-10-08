@@ -1,6 +1,9 @@
 import pytest
 
-from aicaller.audio.barge_in_capture import BargeInCaptureError, BargeInSpeechCapture
+from aicaller.audio.barge_in_capture import (
+    BargeInCaptureError,
+    BargeInSpeechCapture,
+)
 from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFrame
 
 
