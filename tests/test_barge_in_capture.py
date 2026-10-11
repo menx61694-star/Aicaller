@@ -6,7 +6,6 @@ from aicaller.audio.barge_in_capture import (
 )
 from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFrame
 
-
 FORMAT = AudioFormat(AudioEncoding.PCM16_LE, 8000)
 
 
