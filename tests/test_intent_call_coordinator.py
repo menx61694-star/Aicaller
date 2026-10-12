@@ -22,20 +22,23 @@ def create_call(state: CallState = CallState.RINGING) -> tuple[CallService, str]
     return calls, call.call_id
 
 
-def event(text: str, sequence: int = 1) -> AITranscriptEvent:
+def event(text: str, sequence: int = 1, stream_sid: str = "stream-1") -> AITranscriptEvent:
     return AITranscriptEvent(
-        stream_sid="stream-1",
+        stream_sid=stream_sid,
         text=text,
         is_final=True,
         sequence=sequence,
     )
 
 
+def coordinator(call_id: str, calls: CallService) -> IntentCallCoordinator:
+    return IntentCallCoordinator(call_id, "stream-1", calls, IntentRoutingService())
+
+
 def test_urgent_final_transcript_requests_takeover_during_ai_call() -> None:
     calls, call_id = create_call(CallState.AI_CALL)
-    coordinator = IntentCallCoordinator(call_id, calls, IntentRoutingService())
 
-    result = coordinator.process_final_event(event("This is an emergency"))
+    result = coordinator(call_id, calls).process_final_event(event("This is an emergency"))
 
     assert result.call_session.state is CallState.TAKEOVER_REQUESTED
     assert result.state_transitioned
@@ -44,9 +47,10 @@ def test_urgent_final_transcript_requests_takeover_during_ai_call() -> None:
 
 def test_human_request_during_ringing_moves_to_human_ring_state() -> None:
     calls, call_id = create_call()
-    coordinator = IntentCallCoordinator(call_id, calls, IntentRoutingService())
 
-    result = coordinator.process_final_event(event("Please connect me to a real person"))
+    result = coordinator(call_id, calls).process_final_event(
+        event("Please connect me to a real person")
+    )
 
     assert result.call_session.state is CallState.HUMAN_CALL
     assert result.state_transitioned
@@ -55,9 +59,10 @@ def test_human_request_during_ringing_moves_to_human_ring_state() -> None:
 
 def test_unknown_transcript_does_not_change_call_state() -> None:
     calls, call_id = create_call(CallState.AI_CALL)
-    coordinator = IntentCallCoordinator(call_id, calls, IntentRoutingService())
 
-    result = coordinator.process_final_event(event("Could you tell me the time?"))
+    result = coordinator(call_id, calls).process_final_event(
+        event("Could you tell me the time?")
+    )
 
     assert result.call_session.state is CallState.AI_CALL
     assert not result.state_transitioned
@@ -66,25 +71,41 @@ def test_unknown_transcript_does_not_change_call_state() -> None:
 
 def test_escalation_in_unsupported_state_is_deferred_without_invalid_transition() -> None:
     calls, call_id = create_call(CallState.AI_ANSWERING)
-    coordinator = IntentCallCoordinator(call_id, calls, IntentRoutingService())
 
-    result = coordinator.process_final_event(event("Emergency, help me"))
+    result = coordinator(call_id, calls).process_final_event(event("Emergency, help me"))
 
     assert result.call_session.state is CallState.AI_ANSWERING
     assert not result.state_transitioned
     assert "deferred" in result.state_transition_reason
 
 
-def test_coordinator_rejects_empty_call_id() -> None:
-    calls, _ = create_call()
+def test_coordinator_rejects_empty_call_id_or_stream_id() -> None:
+    calls, call_id = create_call()
 
     with pytest.raises(IntentCallCoordinatorError, match="call_id is required"):
-        IntentCallCoordinator("", calls, IntentRoutingService())
+        IntentCallCoordinator("", "stream-1", calls, IntentRoutingService())
+    with pytest.raises(IntentCallCoordinatorError, match="stream_sid is required"):
+        IntentCallCoordinator(call_id, "", calls, IntentRoutingService())
+
+
+def test_coordinator_rejects_transcript_from_different_stream_without_mutation() -> None:
+    calls, call_id = create_call(CallState.AI_CALL)
+    service = IntentRoutingService()
+    coordinator_instance = IntentCallCoordinator(call_id, "stream-1", calls, service)
+
+    with pytest.raises(IntentCallCoordinatorError, match="does not match"):
+        coordinator_instance.process_final_event(
+            event("Emergency", stream_sid="another-stream")
+        )
+
+    assert calls.get(call_id).state is CallState.AI_CALL
+    assert service.intent_store.get().source_sequence == -1
+    assert service.policy_store.get().source_sequence == -1
 
 
 def test_coordinator_rejects_unknown_call() -> None:
     calls = CallService(InMemoryCallRepository())
-    coordinator = IntentCallCoordinator("missing", calls, IntentRoutingService())
+    coordinator_instance = coordinator("missing", calls)
 
     with pytest.raises(KeyError, match="missing"):
-        coordinator.process_final_event(event("Emergency"))
+        coordinator_instance.process_final_event(event("Emergency"))
