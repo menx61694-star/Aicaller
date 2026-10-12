@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import Protocol
 
@@ -63,6 +64,16 @@ class RealtimeCallWorker:
             payload = await self.transport.receive()
         except Exception as exc:
             raise RealtimeCallWorkerError("failed to receive realtime event") from exc
+        try:
+            event = json.loads(payload)
+        except (TypeError, json.JSONDecodeError):
+            event = None
+        if isinstance(event, dict) and event.get("type") == "error":
+            error = event.get("error")
+            message = error.get("message") if isinstance(error, dict) else None
+            raise RealtimeCallWorkerError(
+                f"OpenAI Realtime provider error: {message or 'unspecified error'}"
+            )
         try:
             return self.event_handler.handle(payload)
         except ValueError as exc:
