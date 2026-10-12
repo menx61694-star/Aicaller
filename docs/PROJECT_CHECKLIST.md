@@ -123,11 +123,11 @@
 - [x] Spam scoring — spam indicators scored; automatic blocking remains opt-in and disabled by default
 - [x] Urgency scoring — urgency indicators scored, direct negation checked, and escalation precedence tested
 - [x] Configurable thresholds — urgent, spam, important, human-request and routing escalation thresholds validated; class labels cannot bypass score thresholds
-- [x] Routing rules — classifier → router → intent/policy context → deterministic call-state coordinator implemented and CI-tested; provider-specific ring/bridge execution remains pending
+- [x] Routing rules — live AgentStream completed utterances now hand off to OpenAI Realtime transcription, then final transcript → classifier/router → coordinator; CI-tested with a mocked transport
 - [x] Rule precedence — urgency and explicit human request outrank spam; threshold and precedence regressions tested
-- [x] Human escalation — policy produces REQUEST_HUMAN for qualifying urgent/human-request scores; stream ID is validated; real Exotel bridge remains blocked on account configuration/runtime verification
-- [x] Phase 5 tests — workflow #177 passed on commit `405fb57ff6aaa6fd24915f887eba444c25727eb0`; 213 passed, Ruff clean; realtime handler, worker, OpenAI transcription transport, and μ-law codec are covered
-- [ ] Phase 5 completion audit — OpenAI transport and worker are implemented/tested, but live AgentStream utterance handoff and provider-dependent escalation still pending
+- [x] Human escalation — provider action must succeed before state transition; Exotel ring/takeover remains fail-closed pending account-specific bridge implementation
+- [x] Phase 5 tests — workflow #196 passed on commit `5f1662fa4f91e8e6d67c70ca8bb0704139f985a2`; 219 passed, Ruff clean
+- [ ] Phase 5 completion audit — real OpenAI/Exotel runtime, account bridge configuration, and final regression audit remain pending
 
 ## Phase 6 — Human Takeover
 - [ ] Takeover request
