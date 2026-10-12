@@ -29,6 +29,22 @@ def test_classifier_uses_configurable_thresholds() -> None:
     assert result.urgency_score == 0.90
 
 
+def test_classifier_recognizes_routine_phrases_below_urgent_priorities() -> None:
+    result = CallerClassifier().classify("I am calling to confirm the time")
+
+    assert result.intent is CallIntent.ROUTINE
+    assert result.confidence == 0.60
+    assert result.reason == "routine phrase matched"
+
+
+def test_urgent_phrase_wins_when_transcript_has_routine_phrase_too() -> None:
+    result = CallerClassifier().classify(
+        "I am calling to confirm, but this is an emergency"
+    )
+
+    assert result.intent is CallIntent.URGENT
+
+
 def test_classifier_leaves_unmatched_text_unknown() -> None:
     result = CallerClassifier().classify("Hello, I wanted to ask about tomorrow")
     assert result.intent is CallIntent.UNKNOWN
