@@ -11,6 +11,22 @@ from aicaller.services.intent_call_coordinator import (
 )
 
 
+class FakeHumanEscalationAdapter:
+    def __init__(self, *, fail: bool = False) -> None:
+        self.fail = fail
+        self.actions: list[tuple[str, str, str]] = []
+
+    def start_human_ring(self, provider_call_id: str, destination: str) -> None:
+        if self.fail:
+            raise RuntimeError("provider rejected ring")
+        self.actions.append(("ring", provider_call_id, destination))
+
+    def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
+        if self.fail:
+            raise RuntimeError("provider rejected takeover")
+        self.actions.append(("takeover", provider_call_id, destination))
+
+
 def create_call(state: CallState = CallState.RINGING) -> tuple[CallService, str]:
     calls = CallService(InMemoryCallRepository())
     call = calls.create_incoming("call-coordinator-1", "+911234567890")
@@ -31,30 +47,76 @@ def event(text: str, sequence: int = 1, stream_sid: str = "stream-1") -> AITrans
     )
 
 
-def coordinator(call_id: str, calls: CallService) -> IntentCallCoordinator:
-    return IntentCallCoordinator(call_id, "stream-1", calls, IntentRoutingService())
+def coordinator(
+    call_id: str,
+    calls: CallService,
+    adapter: FakeHumanEscalationAdapter | None = None,
+) -> IntentCallCoordinator:
+    return IntentCallCoordinator(
+        call_id,
+        "stream-1",
+        calls,
+        IntentRoutingService(),
+        human_escalation_adapter=adapter or FakeHumanEscalationAdapter(),
+        human_destination="+911234567890",
+    )
 
 
-def test_urgent_final_transcript_requests_takeover_during_ai_call() -> None:
+def test_urgent_final_transcript_requests_takeover_after_provider_accepts() -> None:
     calls, call_id = create_call(CallState.AI_CALL)
+    adapter = FakeHumanEscalationAdapter()
 
-    result = coordinator(call_id, calls).process_final_event(event("This is an emergency"))
+    result = coordinator(call_id, calls, adapter).process_final_event(
+        event("This is an emergency")
+    )
 
     assert result.call_session.state is CallState.TAKEOVER_REQUESTED
     assert result.state_transitioned
-    assert "provider bridge action remains external" in result.state_transition_reason
+    assert adapter.actions == [("takeover", call_id, "+911234567890")]
+    assert result.state_transition_reason == "provider accepted human-takeover action"
 
 
-def test_human_request_during_ringing_moves_to_human_ring_state() -> None:
+def test_human_request_during_ringing_moves_state_after_provider_accepts() -> None:
     calls, call_id = create_call()
+    adapter = FakeHumanEscalationAdapter()
 
-    result = coordinator(call_id, calls).process_final_event(
+    result = coordinator(call_id, calls, adapter).process_final_event(
         event("Please connect me to a real person")
     )
 
     assert result.call_session.state is CallState.HUMAN_CALL
     assert result.state_transitioned
-    assert "provider ring action remains external" in result.state_transition_reason
+    assert adapter.actions == [("ring", call_id, "+911234567890")]
+    assert result.state_transition_reason == "provider accepted human-ring action"
+
+
+def test_escalation_without_provider_configuration_does_not_fake_state_change() -> None:
+    calls, call_id = create_call(CallState.AI_CALL)
+    coordinator_instance = IntentCallCoordinator(
+        call_id,
+        "stream-1",
+        calls,
+        IntentRoutingService(),
+    )
+
+    result = coordinator_instance.process_final_event(event("This is an emergency"))
+
+    assert result.call_session.state is CallState.AI_CALL
+    assert not result.state_transitioned
+    assert "not configured" in result.state_transition_reason
+
+
+def test_provider_failure_does_not_change_call_state() -> None:
+    calls, call_id = create_call(CallState.AI_CALL)
+    adapter = FakeHumanEscalationAdapter(fail=True)
+
+    result = coordinator(call_id, calls, adapter).process_final_event(
+        event("This is an emergency")
+    )
+
+    assert result.call_session.state is CallState.AI_CALL
+    assert not result.state_transitioned
+    assert "RuntimeError" in result.state_transition_reason
 
 
 def test_unknown_transcript_does_not_change_call_state() -> None:
