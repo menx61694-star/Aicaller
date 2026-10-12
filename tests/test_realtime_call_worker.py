@@ -36,6 +36,14 @@ class FakeRealtimeTransport:
         return self.incoming.pop(0)
 
 
+class FakeHumanEscalationAdapter:
+    def start_human_ring(self, provider_call_id: str, destination: str) -> None:
+        return None
+
+    def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
+        return None
+
+
 def make_worker(incoming: list[str | bytes] | None = None, *, use_mulaw: bool = False):
     calls = CallService(InMemoryCallRepository())
     call = calls.create_incoming("call-worker-1", "+911")
@@ -49,6 +57,8 @@ def make_worker(incoming: list[str | bytes] | None = None, *, use_mulaw: bool = 
         session.stream_sid,
         calls,
         routing,
+        human_escalation_adapter=FakeHumanEscalationAdapter(),
+        human_destination="+911234567890",
     )
     handler = RealtimeIntentEventHandler(session, coordinator)
     transport = FakeRealtimeTransport(incoming)
