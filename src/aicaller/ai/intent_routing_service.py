@@ -6,6 +6,7 @@ from aicaller.ai.classification import CallerClassification, CallerClassifier
 from aicaller.ai.intent import IntentContext, IntentContextStore, IntentError
 from aicaller.ai.intent_routing import IntentRouter, IntentRoutingDecision
 from aicaller.ai.policy import PolicyContext, PolicyContextStore, PolicyError
+from aicaller.ai.session import AITranscriptEvent
 
 
 class IntentRoutingServiceError(ValueError):
@@ -23,8 +24,9 @@ class IntentRoutingEvaluation:
 class IntentRoutingService:
     """Evaluate transcript intent and persist matching intent/policy contexts.
 
-    Both stores are preflighted before either is changed, preventing stale
-    transcript events from partially updating the two contexts.
+    Partial transcript updates are deliberately excluded from routing. Both
+    stores are preflighted before either is changed, preventing stale events
+    from partially updating the two contexts.
     """
 
     def __init__(
@@ -38,6 +40,15 @@ class IntentRoutingService:
         self.router = router or IntentRouter()
         self.intent_store = intent_store or IntentContextStore()
         self.policy_store = policy_store or PolicyContextStore()
+
+    def evaluate_final_event(self, event: AITranscriptEvent) -> IntentRoutingEvaluation:
+        if not event.is_final:
+            raise IntentRoutingServiceError(
+                "partial transcript events cannot drive call routing"
+            )
+        if not event.stream_sid:
+            raise IntentRoutingServiceError("transcript stream id is required")
+        return self.evaluate(event.text, source_sequence=event.sequence)
 
     def evaluate(self, transcript: str, *, source_sequence: int) -> IntentRoutingEvaluation:
         if source_sequence < 0:
