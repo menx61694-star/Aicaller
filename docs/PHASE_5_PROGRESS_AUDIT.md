@@ -3,39 +3,31 @@
 ## Implemented and CI-verified
 
 - `src/aicaller/ai/classification.py`: deterministic phrase-based caller classification for urgent, human-request, spam, important, routine, and unknown intents. English, Hindi transliteration, and selected Devanagari phrases are covered. Local negation checks prevent direct phrases such as “not an emergency” or “emergency nahi hai” from triggering urgent classification. These are rule-derived indicators, not calibrated probabilities.
-- `src/aicaller/ai/intent.py`: monotonic intent context store retains intent, confidence, sequence, and reason.
 - `src/aicaller/ai/intent_routing.py`: explicit routing precedence and configurable thresholds. Urgency and explicit human-request scores outrank spam signals; intent labels cannot bypass configured score thresholds; automatic spam blocking is opt-in and defaults off.
-- `src/aicaller/ai/intent_routing_service.py`: connects classifier → router → intent/policy context stores. It preflights monotonic sequences before writes and rejects partial realtime transcript events as routing inputs.
-- `src/aicaller/services/intent_call_coordinator.py`: applies `REQUEST_HUMAN` decisions to the deterministic call state machine: RINGING → HUMAN_CALL and AI_CALL → TAKEOVER_REQUESTED. Escalation in unsupported states is deferred rather than forcing an invalid transition. Transcript stream IDs must match the coordinator's bound stream before classification or state mutation.
-- `src/aicaller/services/realtime_intent_event_handler.py`: connects parsed `RealtimeAISession` transcript events to the call coordinator. Non-transcript and partial events do not trigger routing; final transcript events may trigger escalation.
-- `src/aicaller/services/realtime_call_worker.py`: transport-injected async worker sends each completed utterance as append+commit messages and routes received provider transcript events through the handler; provider-specific PCM16→μ-law encoding is injectable.
-- `src/aicaller/ai/openai_realtime_transport.py`: authenticated WebSocket transport for OpenAI Realtime transcription, configures `gpt-live-transcribe` with 8 kHz G.711 μ-law and English/Hindi language hints, waits for session initialization, rejects provider error/malformed events, and closes failed handshakes.
-- `src/aicaller/audio/mulaw.py`: deterministic PCM16LE 8 kHz ↔ G.711 μ-law codec conversion, with strict frame-size/sample-rate checks.
-- `tests/test_classification.py`: English and Hindi intent phrases, routine intent, urgency precedence, direct-negation cases, previous-sentence isolation, unknown text, threshold validation, and invalid input.
-- `tests/test_intent_routing.py`: precedence, score-threshold enforcement, safe spam default, configurable escalation, unknown handling, and invalid score/threshold coverage.
-- `tests/test_intent_routing_service.py`: end-to-end context persistence, final-transcript gating, partial-event non-mutation, safe spam default, stale-sequence non-mutation, and invalid sequence handling.
-- `tests/test_intent_call_coordinator.py`: call-state escalation from RINGING and AI_CALL, unknown intent non-transition, unsupported-state deferral, invalid/missing call handling, and rejection of cross-stream transcript events without mutation.
-- `tests/test_realtime_intent_event_handler.py`: final transcript escalation, partial transcript non-routing, unrelated provider event handling, stream binding, and malformed-event rejection.
-- `tests/test_realtime_call_worker.py`: append/commit ordering, audio bytes, PCMU conversion, cross-stream utterance rejection, final transcript escalation, partial transcript non-routing, and transport failure handling.
-- `tests/test_openai_realtime_transport.py`: auth header, transcription-session schema, PCMU format, session handshake, provider error cleanup, and malformed event handling.
-- `tests/test_mulaw_codec.py`: known G.711 vectors, PCM decode, malformed samples, timing/sequence preservation, and unsupported input format rejection.
+- `src/aicaller/ai/intent_routing_service.py`: connects classifier → router → intent/policy context stores, preflights monotonic sequences before writes, and rejects partial realtime transcript events as routing inputs.
+- `src/aicaller/services/intent_call_coordinator.py`: applies `REQUEST_HUMAN` decisions to the call state machine only after a provider action succeeds. Missing destination/provider configuration and provider errors leave the call state unchanged. Transcript stream IDs must match the call's bound stream.
+- `src/aicaller/services/realtime_intent_event_handler.py`: routes only final transcript events; partial and unrelated events cannot change call routing.
+- `src/aicaller/services/realtime_call_worker.py`: sends completed utterances as append+commit messages and routes received provider events. It supports injected audio encoding and surfaces provider error events instead of silently ignoring them.
+- `src/aicaller/ai/openai_realtime_transport.py`: authenticated WebSocket transport for OpenAI Realtime transcription, configures `gpt-live-transcribe` with 8 kHz G.711 μ-law and English/Hindi language hints, waits for session initialization, and closes failed handshakes.
+- `src/aicaller/audio/mulaw.py`: tested mono PCM16LE 8 kHz ↔ G.711 μ-law conversion.
+- `src/aicaller/api/routes/exotel_stream.py`: when `OPENAI_API_KEY` is configured, connects the OpenAI transcription session on AgentStream START, sends completed VAD utterances to the realtime worker, reads transcript events concurrently, logs routing decisions, and closes the worker/transport on STOP/disconnect. When no key is configured, the optional AI transcription path remains disabled.
+- `HUMAN_PHONE_NUMBER` is now documented in `.env.example`. Exotel human ring/takeover still intentionally fails closed until account-specific bridge actions are implemented/configured.
+- Focused tests cover classification, precedence, provider-confirmed state transitions, cross-stream rejection, transcript-final gating, transport handshake, μ-law conversion, worker behavior, and AgentStream utterance handoff.
 
 ## CI verification
 
-- Workflows #130–#145 passed for classifier, routing, service and call-state coordinator implementation/tests; workflow #145 reported 181 tests passed and Ruff clean.
-- Workflow #150 passed on commit `896a6a2f0bb501b698c490aac26b977e59f6ed6d`: 190 tests passed, one third-party deprecation warning, Ruff clean.
-- Workflow #153 failed because its code commit was tested against the immediately previous test-file revision; six coordinator constructor tests used the old signature. The next commit updated all tests to the stream-bound constructor.
-- Workflow #154 passed on commit `c91e5b9cb56050b05f69ad18162930e6209ba98e`: 193 tests passed and Ruff clean.
-- Workflow #158 passed on commit `9d54a3fda0c55505d0bc6d586d00fb988cf6b461`: 198 tests passed and Ruff clean.
-- Workflow #162 passed on commit `ffdd0df7115cc14d90bef96b47076becc1732315`: 203 tests passed and Ruff clean.
-- Workflow #177 passed on commit `405fb57ff6aaa6fd24915f887eba444c25727eb0`: **213 tests passed**, one third-party deprecation warning, and `ruff check .` passed.
-- Latest verified workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38285854427
+- Workflows #130–#145 passed for initial classifier/routing/service/coordinator implementation and tests.
+- Workflow #158 passed: 198 tests passed and Ruff clean.
+- Workflow #162 passed: 203 tests passed and Ruff clean.
+- Workflow #177 passed: 213 tests passed and Ruff clean.
+- Workflow #187 passed: 217 tests passed and Ruff clean, including Exotel fail-closed escalation tests.
+- Workflow #196 passed on commit `5f1662fa4f91e8e6d67c70ca8bb0704139f985a2`: **219 tests passed**, one third-party deprecation warning, and `ruff check .` passed.
+- Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38286580917
 
 ## Limits / remaining work
 
-- Phrase-based scores are not calibrated probabilities and are not production-grade ML classification.
-- Hindi/English phrase coverage is still limited; representative transcript evaluation, broader language support, and model-based calibration remain pending.
-- The OpenAI Realtime transcription transport and worker are implemented and tested, but the live Exotel AgentStream loop still discards completed utterances and is not connected to the transport.
-- The coordinator updates domain call state only; actual Exotel ring/bridge/hangup actions still require account-specific configuration and telephony adapter execution.
-- Provider runtime verification and final regression/audit remain pending.
-- Phase 5 is **not complete** until live worker wiring, provider-dependent escalation, and final audit requirements are verified.
+- Phrase-based scores are not calibrated probabilities or production-grade ML classification. Broader Hindi/English transcript evaluation and additional languages remain pending.
+- Live AgentStream → OpenAI transcription → final transcript → classifier/router → domain coordinator wiring is now implemented and CI-tested, but it has **not** been verified against a real OpenAI API key or live Exotel call.
+- Exotel ring/takeover provider actions remain unconfigured and deliberately fail closed. The domain call state does not claim a human ring/takeover succeeded unless the provider adapter returns successfully.
+- Real provider credentials, public WSS deployment, Exotel allowlisting, bridge/transfer flow, real-call latency/audio validation, and final regression/audit remain pending.
+- Phase 5 is **not complete** until provider runtime and human escalation are verified.
