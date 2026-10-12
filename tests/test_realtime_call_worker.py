@@ -147,3 +147,14 @@ async def test_worker_surfaces_transport_receive_failure() -> None:
 
     with pytest.raises(RealtimeCallWorkerError, match="failed to receive"):
         await worker.receive_and_route()
+
+
+
+@pytest.mark.asyncio
+async def test_worker_surfaces_provider_error_event() -> None:
+    worker, _, _, _ = make_worker(
+        [json.dumps({"type": "error", "error": {"message": "invalid audio format"}})]
+    )
+
+    with pytest.raises(RealtimeCallWorkerError, match="invalid audio format"):
+        await worker.receive_and_route()
