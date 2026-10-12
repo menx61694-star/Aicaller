@@ -6,6 +6,7 @@ import pytest
 from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.ai.session import RealtimeAISession
 from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFrame
+from aicaller.audio.mulaw import encode_pcm16le_to_mulaw, encode_utterance_pcm16le_to_mulaw
 from aicaller.audio.utterance import AudioUtterance
 from aicaller.domain.call import CallState
 from aicaller.services.call_repository import InMemoryCallRepository
@@ -32,7 +33,7 @@ class FakeRealtimeTransport:
         return self.incoming.pop(0)
 
 
-def make_worker(incoming: list[str | bytes] | None = None):
+def make_worker(incoming: list[str | bytes] | None = None, *, use_mulaw: bool = False):
     calls = CallService(InMemoryCallRepository())
     call = calls.create_incoming("call-worker-1", "+911")
     calls.transition(call.call_id, CallState.RINGING)
@@ -48,7 +49,8 @@ def make_worker(incoming: list[str | bytes] | None = None):
     )
     handler = RealtimeIntentEventHandler(session, coordinator)
     transport = FakeRealtimeTransport(incoming)
-    return RealtimeCallWorker(session, handler, transport), transport, calls, call.call_id
+    encoder = encode_utterance_pcm16le_to_mulaw if use_mulaw else None
+    return RealtimeCallWorker(session, handler, transport, encoder), transport, calls, call.call_id
 
 
 def sample_utterance(stream_sid: str = "worker-stream-1") -> AudioUtterance:
@@ -68,6 +70,18 @@ async def test_worker_sends_audio_append_then_commit() -> None:
     assert append["type"] == "input_audio_buffer.append"
     assert base64.b64decode(append["audio"]) == b"\x01\x02"
     assert commit["type"] == "input_audio_buffer.commit"
+
+
+@pytest.mark.asyncio
+async def test_worker_can_encode_pcm16_8khz_to_mulaw_for_openai_transport() -> None:
+    worker, transport, _, _ = make_worker(use_mulaw=True)
+
+    await worker.send_utterance(sample_utterance())
+
+    append = json.loads(transport.sent[0])
+    assert base64.b64decode(append["audio"]) == encode_pcm16le_to_mulaw(b"\x01\x02")
+    assert len(base64.b64decode(append["audio"])) == 1
+    assert json.loads(transport.sent[1])["type"] == "input_audio_buffer.commit"
 
 
 @pytest.mark.asyncio
