@@ -1,24 +1,28 @@
 # Phase 5 — Intent & Routing Progress Audit
 
-## Implemented
+## Implemented and CI-verified
 
-- `src/aicaller/ai/classification.py`: deterministic baseline caller classifier with configurable thresholds for urgent, spam, important, and human-request indicators; outputs separate spam, urgency, and human-request scores.
-- `src/aicaller/ai/intent.py`: existing monotonic intent context store retains intent, confidence, sequence and reason.
-- `src/aicaller/ai/intent_routing.py`: explicit routing precedence and configurable thresholds; urgent escalation and human requests outrank spam signals; automatic spam blocking is opt-in and defaults off.
-- `tests/test_classification.py`: threshold validation, urgency, mixed spam/human phrase, unknown intent, and invalid transcript coverage.
-- `tests/test_intent_routing.py`: precedence, safe spam default, configurable escalation, unknown handling and invalid score/threshold coverage.
+- `src/aicaller/ai/classification.py`: deterministic phrase-based caller classification for urgent, human-request, spam, important, and routine intents. Configurable thresholds cover urgent, spam, important, and human-request indicators. Scores are rule-derived indicators, not calibrated probabilities.
+- `src/aicaller/ai/intent.py`: monotonic intent context store retains intent, confidence, sequence, and reason.
+- `src/aicaller/ai/intent_routing.py`: explicit routing precedence and configurable thresholds. Urgency and explicit human requests outrank spam signals; automatic spam blocking is opt-in and defaults off.
+- `src/aicaller/ai/intent_routing_service.py`: connects classifier → router → intent/policy context stores. It preflights monotonic sequences before writes and rejects partial realtime transcript events as routing inputs.
+- `tests/test_classification.py`: urgency, mixed spam/human precedence, configurable thresholds, routine intent, urgency-over-routine precedence, unknown text, and invalid input.
+- `tests/test_intent_routing.py`: precedence, safe spam default, configurable escalation, unknown handling, and invalid score/threshold coverage.
+- `tests/test_intent_routing_service.py`: end-to-end context persistence, final-transcript gating, partial-event non-mutation, safe spam default, stale-sequence non-mutation, and invalid sequence handling.
 
 ## CI verification
 
-- Workflow #130 passed for classifier implementation commit `7ec77bdd3f1967fbd7d4d760a5f6231ee3452370`.
-- Workflow #131 passed for classifier tests commit `c4dcaba6f11e473946c55a8e7da5b825f9a20275`.
-- Workflow #132 passed for routing precedence implementation commit `bf37b6377061e7a69be4cef537d27b80aae47ed7`.
-- Workflow #133 passed for routing tests commit `3819b08eac1e76cd2a6e83a9e051b12ff87ba9ca`.
+- Workflows #130–#133 passed for the initial classifier and routing implementation/tests.
+- Workflow #137 passed after removing an unused import; this run reported 171 tests passed and Ruff clean.
+- Workflows #138 and #139 passed for final-transcript gating and its regression tests.
+- Workflow #140 passed for routine-intent classification.
+- Workflow #141 passed on commit `8af600a7beb4a10baf8575298d192530b8300590`: **175 tests passed**, one third-party deprecation warning, and `ruff check .` passed.
+- Latest verified workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38282667808
 
 ## Limits / remaining work
 
-- Phrase-based scores are deterministic indicators, not calibrated probabilities or production-grade ML classification.
-- Locale/language-specific phrases and real transcript evaluation remain pending.
-- Human routing still depends on provider/account-specific bridge configuration.
-- End-to-end routing integration with live call state, audit, and full Phase 5 regression suite remain pending.
-- Do not mark Phase 5 complete until remaining checklist items and verification are finished.
+- Phrase-based scores are not calibrated probabilities and are not production-grade ML classification.
+- Locale/language-specific phrases, representative transcript evaluation, and model-based calibration remain pending.
+- The service persists intent/policy context but is not yet wired into the live telephony call-state transition/worker path.
+- Human escalation decisions are produced deterministically; the real Exotel bridge/transfer remains blocked on account-specific configuration and runtime verification.
+- Phase 5 is **not complete** until live-call integration, remaining checklist items, and the final regression/audit are verified.
