@@ -125,8 +125,8 @@
 - [x] Routing rules — classifier → router → intent/policy context → deterministic call-state coordinator implemented and CI-tested; provider-specific ring/bridge execution remains pending
 - [x] Rule precedence — urgency and explicit human request outrank spam; threshold and precedence regressions tested
 - [x] Human escalation — policy produces REQUEST_HUMAN for qualifying urgent/human-request scores; stream ID is validated; real Exotel bridge remains blocked on account configuration/runtime verification
-- [x] Phase 5 tests — workflow #154 passed on commit `c91e5b9cb56050b05f69ad18162930e6209ba98e`; 193 passed, Ruff clean
-- [ ] Phase 5 completion audit — transcript-to-coordinator live worker wiring and provider-dependent escalation still pending
+- [x] Phase 5 tests — workflow #158 passed on commit `9d54a3fda0c55505d0bc6d586d00fb988cf6b461`; 198 passed, Ruff clean; realtime transcript routing handler is covered
+- [ ] Phase 5 completion audit — realtime transcript handler is implemented/tested, but live AgentStream/OpenAI worker wiring and provider-dependent escalation still pending
 
 ## Phase 6 — Human Takeover
 - [ ] Takeover request
