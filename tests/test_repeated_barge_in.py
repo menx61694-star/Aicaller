@@ -17,13 +17,17 @@ def test_repeated_barge_in_advances_generation() -> None:
     assert controller.count == 2
 
 
-def test_repeated_barge_in_is_bounded() -> None:
+def test_repeated_barge_in_is_bounded_without_mutating_state_on_rejection() -> None:
     controller = RepeatedBargeInController(max_interruptions=2)
     controller.begin(sequence=1)
     controller.begin(sequence=2)
+    generation_before_rejection = controller.generation
 
     with pytest.raises(RepeatedBargeInError, match="maximum interruptions"):
         controller.begin(sequence=3)
+
+    assert controller.count == 2
+    assert controller.generation == generation_before_rejection
 
 
 def test_reset_starts_a_new_generation() -> None:
