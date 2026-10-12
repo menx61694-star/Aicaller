@@ -116,17 +116,17 @@
 - [ ] Phase 4 completion audit — audit document created; final documentation workflow and real provider runtime gate remain pending
 
 ## Phase 5 — Intent & Routing
-- [ ] Caller classification
-- [ ] Intent classification
-- [ ] Confidence scores
-- [ ] Spam scoring
-- [ ] Urgency scoring
-- [ ] Configurable thresholds
-- [ ] Routing rules
-- [ ] Rule precedence
-- [ ] Human escalation
-- [ ] Phase 5 tests
-- [ ] Phase 5 completion audit
+- [x] Caller classification — deterministic phrase-based caller classifier implemented; production ML/calibration remains pending
+- [x] Intent classification — urgent, human request, spam, important, routine, and unknown intents are represented
+- [x] Confidence scores — deterministic rule-derived confidence/indicator scores recorded; not calibrated probabilities
+- [x] Spam scoring — spam indicators scored; automatic blocking remains opt-in and disabled by default
+- [x] Urgency scoring — urgency indicators scored and given routing precedence over spam
+- [x] Configurable thresholds — urgent, spam, important, human-request and routing escalation thresholds validated
+- [x] Routing rules — classifier, router, and intent/policy context integration implemented and CI-tested
+- [x] Rule precedence — urgency and explicit human request outrank spam; regression-tested
+- [x] Human escalation — policy produces REQUEST_HUMAN for urgent/human-request cases; real Exotel bridge remains blocked on account configuration/runtime verification
+- [x] Phase 5 tests — workflow #141 passed on commit `8af600a7beb4a10baf8575298d192530b8300590`; 175 passed, Ruff clean
+- [ ] Phase 5 completion audit — live-call state/worker integration and provider-dependent escalation still pending
 
 ## Phase 6 — Human Takeover
 - [ ] Takeover request
