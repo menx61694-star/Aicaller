@@ -2,8 +2,12 @@ import pytest
 
 from aicaller.ai.intent import CallIntent, IntentContextStore, IntentError
 from aicaller.ai.intent_routing import RoutingReason
-from aicaller.ai.intent_routing_service import IntentRoutingService
+from aicaller.ai.intent_routing_service import (
+    IntentRoutingService,
+    IntentRoutingServiceError,
+)
 from aicaller.ai.policy import PolicyAction, PolicyContextStore, PolicyError
+from aicaller.ai.session import AITranscriptEvent
 
 
 def test_service_persists_urgent_classification_and_human_routing() -> None:
@@ -18,6 +22,41 @@ def test_service_persists_urgent_classification_and_human_routing() -> None:
     assert result.intent_context.intent is CallIntent.URGENT
     assert result.policy_context.source_sequence == 1
     assert result.policy_context.action is PolicyAction.REQUEST_HUMAN
+
+
+def test_service_routes_only_final_realtime_transcript_events() -> None:
+    service = IntentRoutingService()
+    event = AITranscriptEvent(
+        stream_sid="stream-1",
+        text="This is an emergency",
+        is_final=True,
+        sequence=7,
+    )
+
+    result = service.evaluate_final_event(event)
+
+    assert result.intent_context.source_sequence == 7
+    assert result.policy_context.action is PolicyAction.REQUEST_HUMAN
+
+
+def test_partial_transcript_cannot_change_routing_context() -> None:
+    intent_store = IntentContextStore()
+    policy_store = PolicyContextStore()
+    service = IntentRoutingService(intent_store=intent_store, policy_store=policy_store)
+    before_intent = intent_store.get()
+    before_policy = policy_store.get()
+    event = AITranscriptEvent(
+        stream_sid="stream-1",
+        text="emergency",
+        is_final=False,
+        sequence=1,
+    )
+
+    with pytest.raises(IntentRoutingServiceError, match="partial transcript"):
+        service.evaluate_final_event(event)
+
+    assert intent_store.get() == before_intent
+    assert policy_store.get() == before_policy
 
 
 def test_service_keeps_spam_blocking_safe_by_default() -> None:
