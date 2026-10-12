@@ -6,7 +6,6 @@ from aicaller.audio.format import (
 )
 from aicaller.audio.utterance import AudioUtterance
 
-
 _MULAW_BIAS = 0x84
 _MULAW_CLIP = 32635
 _SEGMENT_END = (0xFF, 0x1FF, 0x3FF, 0x7FF, 0xFFF, 0x1FFF, 0x3FFF, 0x7FFF)
