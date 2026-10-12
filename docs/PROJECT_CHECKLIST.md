@@ -122,7 +122,7 @@
 - [x] Spam scoring — spam indicators scored; automatic blocking remains opt-in and disabled by default
 - [x] Urgency scoring — urgency indicators scored and given routing precedence over spam
 - [x] Configurable thresholds — urgent, spam, important, human-request and routing escalation thresholds validated
-- [x] Routing rules — classifier, router, and intent/policy context integration implemented and CI-tested
+- [x] Routing rules — classifier → router → intent/policy context → deterministic call-state coordinator implemented and CI-tested; provider-specific ring/bridge execution remains pending
 - [x] Rule precedence — urgency and explicit human request outrank spam; regression-tested
 - [x] Human escalation — policy produces REQUEST_HUMAN for urgent/human-request cases; real Exotel bridge remains blocked on account configuration/runtime verification
 - [x] Phase 5 tests — workflow #141 passed on commit `8af600a7beb4a10baf8575298d192530b8300590`; 175 passed, Ruff clean
