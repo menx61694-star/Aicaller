@@ -84,6 +84,7 @@
 - [x] VAD — deterministic PCM16 mono energy VAD with configurable speech/silence hysteresis and CI-covered transition/format tests; runtime/provider calibration remains pending
 - [x] Packet-loss handling — bounded gap policy, explicit silence-frame primitive, and jitter-pipeline integration implemented and covered by CI-verified tests; real-media runtime verification remains pending
 - [x] Audio buffering — bounded inbound pipeline now buffers, orders, and releases audio frames
+- [x] Audio codec conversion — tested mono PCM16LE 8 kHz ↔ G.711 μ-law conversion for the OpenAI telephony path; provider runtime validation remains pending
 - [x] Input pipeline — provider-neutral inbound frame path implemented before codec/VAD/AI processing
 - [x] Output pipeline — bounded, sequence-aware provider-neutral outbound audio queue implemented; provider-specific media encoding/sending and real-call verification remain pending
 - [ ] Phase 2 tests — parser and WebSocket tests added; runtime execution and real-call verification pending
@@ -125,8 +126,8 @@
 - [x] Routing rules — classifier → router → intent/policy context → deterministic call-state coordinator implemented and CI-tested; provider-specific ring/bridge execution remains pending
 - [x] Rule precedence — urgency and explicit human request outrank spam; threshold and precedence regressions tested
 - [x] Human escalation — policy produces REQUEST_HUMAN for qualifying urgent/human-request scores; stream ID is validated; real Exotel bridge remains blocked on account configuration/runtime verification
-- [x] Phase 5 tests — workflow #162 passed on commit `ffdd0df7115cc14d90bef96b47076becc1732315`; 203 passed, Ruff clean; transcript handler and transport-injected worker are covered
-- [ ] Phase 5 completion audit — transport-injected realtime worker is implemented/tested, but live AgentStream/OpenAI WebSocket wiring and provider-dependent escalation still pending
+- [x] Phase 5 tests — workflow #177 passed on commit `405fb57ff6aaa6fd24915f887eba444c25727eb0`; 213 passed, Ruff clean; realtime handler, worker, OpenAI transcription transport, and μ-law codec are covered
+- [ ] Phase 5 completion audit — OpenAI transport and worker are implemented/tested, but live AgentStream utterance handoff and provider-dependent escalation still pending
 
 ## Phase 6 — Human Takeover
 - [ ] Takeover request
