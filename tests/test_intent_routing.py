@@ -45,6 +45,27 @@ def test_human_request_has_precedence_over_spam() -> None:
     assert decision.reason is RoutingReason.HUMAN_REQUEST
 
 
+def test_configured_urgency_threshold_is_not_bypassed_by_intent_label() -> None:
+    router = IntentRouter(IntentRoutingConfig(urgent_escalation_threshold=0.98))
+    decision = router.route(
+        classification(CallIntent.URGENT, confidence=0.9, urgency=0.9)
+    )
+
+    assert decision.action is PolicyAction.CONTINUE_AI
+    assert decision.reason is RoutingReason.UNKNOWN_REVIEW
+    assert decision.requires_confirmation
+
+
+def test_configured_human_threshold_is_not_bypassed_by_intent_label() -> None:
+    router = IntentRouter(IntentRoutingConfig(human_request_threshold=0.99))
+    decision = router.route(
+        classification(CallIntent.HUMAN_REQUEST, confidence=0.95, human=0.95)
+    )
+
+    assert decision.action is PolicyAction.CONTINUE_AI
+    assert decision.requires_confirmation
+
+
 def test_spam_block_is_opt_in_and_requires_confirmation_by_default() -> None:
     result = classification(CallIntent.SPAM, confidence=0.92, spam=0.99)
     default = IntentRouter().route(result)
