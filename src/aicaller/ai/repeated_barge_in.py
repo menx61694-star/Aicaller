@@ -26,10 +26,10 @@ class RepeatedBargeInController:
     def begin(self, *, sequence: int) -> InterruptionEvent:
         if sequence < 0:
             raise RepeatedBargeInError("sequence must be non-negative")
+        if self._count >= self.max_interruptions:
+            raise RepeatedBargeInError("maximum interruptions exceeded")
         self._count += 1
         self._generation += 1
-        if self._count > self.max_interruptions:
-            raise RepeatedBargeInError("maximum interruptions exceeded")
         return InterruptionEvent(self._generation, sequence)
 
     def reset(self) -> None:
