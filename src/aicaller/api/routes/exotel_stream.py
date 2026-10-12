@@ -16,6 +16,7 @@ from aicaller.ai.openai_realtime_transport import (
     OpenAIRealtimeTranscriptionTransport,
     OpenAIRealtimeTransportError,
 )
+from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.ai.session import RealtimeAISession
 from aicaller.audio.aec import NLMSAcousticEchoCanceller
 from aicaller.audio.aec_reference import AECReferenceBuffer
@@ -36,7 +37,6 @@ from aicaller.domain.call import CallState
 from aicaller.services.call_repository import InMemoryCallRepository
 from aicaller.services.call_service import CallService
 from aicaller.services.intent_call_coordinator import IntentCallCoordinator
-from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.services.realtime_call_worker import (
     RealtimeCallWorker,
     RealtimeCallWorkerError,
