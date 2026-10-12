@@ -1,10 +1,10 @@
 import json
 
+from aicaller.adapters.telephony.base import TelephonyEvent, TelephonyEventType
+
 
 class ExotelHumanRingNotConfigured(RuntimeError):
     """Raised until the account-specific Exotel bridge/transfer is configured."""
-
-from aicaller.adapters.telephony.base import TelephonyEvent, TelephonyEventType
 
 
 class ExotelAdapter:
@@ -21,6 +21,11 @@ class ExotelAdapter:
     def stop_human_ring(self, provider_call_id: str) -> None:
         raise ExotelHumanRingNotConfigured(
             "Exotel human-ring bridge requires account-specific flow configuration"
+        )
+
+    def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
+        raise ExotelHumanRingNotConfigured(
+            "Exotel human takeover requires account-specific bridge configuration"
         )
 
     def parse_event(self, payload: bytes, headers: dict[str, str]) -> TelephonyEvent:
