@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from aicaller.ai.intent import CallIntent
@@ -35,16 +36,68 @@ class CallerClassification:
 
 
 class CallerClassifier:
-    """Small deterministic baseline; replaceable by a calibrated model adapter.
+    """Deterministic Hindi/English phrase baseline, not a calibrated ML model."""
 
-    Scores are rule-derived indicators, not verified probabilities. Unknown
-    phrases remain UNKNOWN rather than being force-classified.
-    """
-
-    _URGENT = ("emergency", "urgent", "help me", "accident", "hospital", "danger")
-    _IMPORTANT = ("doctor", "school", "family", "important", "appointment")
-    _HUMAN = ("human", "real person", "agent", "talk to someone", "representative")
-    _SPAM = ("loan offer", "win a prize", "limited offer", "investment scheme", "press one")
+    _URGENT = (
+        "emergency",
+        "urgent",
+        "help me",
+        "accident",
+        "hospital",
+        "danger",
+        "आपातकाल",
+        "तुरंत मदद",
+        "बहुत जरूरी",
+        "madad karo",
+        "madad chahiye",
+        "bahut zaroori",
+        "accident ho gaya",
+        "hospital le chalo",
+        "jaan ka khatra",
+        "emergency hai",
+    )
+    _IMPORTANT = (
+        "doctor",
+        "school",
+        "family",
+        "important",
+        "appointment",
+        "parivaar",
+        "zaroori baat",
+        "जरूरी बात",
+        "परिवार",
+        "अपॉइंटमेंट",
+    )
+    _HUMAN = (
+        "human",
+        "real person",
+        "agent",
+        "talk to someone",
+        "representative",
+        "insaan se baat",
+        "kisi insaan",
+        "human se baat",
+        "agent se baat",
+        "operator se baat",
+        "aadmi se baat",
+        "किसी इंसान से बात",
+        "इंसान से बात",
+        "ऑपरेटर से बात",
+    )
+    _SPAM = (
+        "loan offer",
+        "win a prize",
+        "limited offer",
+        "investment scheme",
+        "press one",
+        "loan ke liye",
+        "inaam jeeta",
+        "inaam jeetne",
+        "lakhon jeete",
+        "free recharge",
+        "इनाम जीता",
+        "मुफ्त रिचार्ज",
+    )
     _ROUTINE = (
         "calling to confirm",
         "just checking in",
@@ -53,15 +106,46 @@ class CallerClassifier:
         "routine call",
         "not urgent",
         "following up on",
+        "time confirm",
+        "sirf poochna",
+        "bas confirm karna",
+        "koi jaldi nahi",
+        "jaldi nahi hai",
+        "समय की पुष्टि",
+        "सिर्फ पूछना",
+        "कोई जल्दी नहीं",
+    )
+    _NEGATION = re.compile(
+        r"\b(?:not|no|never|isn't|aren't|don't|doesn't|didn't|without|"
+        r"nahi|nahin|nhi|mat|mana)\b|नहीं|मत|ना",
+        re.IGNORECASE,
     )
 
     def __init__(self, thresholds: ClassificationThresholds | None = None) -> None:
         self.thresholds = thresholds or ClassificationThresholds()
 
-    @staticmethod
-    def _score(text: str, phrases: tuple[str, ...], score: float) -> float:
+    @classmethod
+    def _has_phrase(cls, text: str, phrases: tuple[str, ...]) -> bool:
         normalized = " ".join(text.casefold().split())
-        return score if any(phrase in normalized for phrase in phrases) else 0.0
+        for phrase in phrases:
+            start = 0
+            while True:
+                index = normalized.find(phrase.casefold(), start)
+                if index < 0:
+                    break
+                end = index + len(phrase)
+                # Check a small local window on both sides so direct negations
+                # such as "not an emergency" and "emergency nahi hai" do not
+                # trigger a positive high-priority classification.
+                context = normalized[max(0, index - 24) : min(len(normalized), end + 18)]
+                if not cls._NEGATION.search(context):
+                    return True
+                start = index + 1
+        return False
+
+    @classmethod
+    def _score(cls, text: str, phrases: tuple[str, ...], score: float) -> float:
+        return score if cls._has_phrase(text, phrases) else 0.0
 
     def classify(self, text: str) -> CallerClassification:
         if not text or not text.strip():
