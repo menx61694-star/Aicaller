@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from aicaller.audio.format import (
+    AudioEncoding,
+    AudioFormat,
+)
 from aicaller.audio.utterance import AudioUtterance
-from aicaller.audio.format import AudioEncoding, AudioFormat
 
 
 _MULAW_BIAS = 0x84
