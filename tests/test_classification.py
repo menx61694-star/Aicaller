@@ -45,6 +45,57 @@ def test_urgent_phrase_wins_when_transcript_has_routine_phrase_too() -> None:
     assert result.intent is CallIntent.URGENT
 
 
+def test_classifier_recognizes_hindi_urgent_phrase() -> None:
+    result = CallerClassifier().classify("Mujhe turant madad chahiye")
+
+    assert result.intent is CallIntent.URGENT
+    assert result.urgency_score == 0.90
+
+
+def test_classifier_recognizes_devanagari_urgent_phrase() -> None:
+    result = CallerClassifier().classify("यह आपातकाल है, तुरंत मदद चाहिए")
+
+    assert result.intent is CallIntent.URGENT
+
+
+def test_classifier_recognizes_hindi_human_request_and_spam() -> None:
+    human = CallerClassifier().classify("Mujhe kisi insaan se baat karni hai")
+    spam = CallerClassifier().classify("Aapne inaam jeeta hai, free recharge lein")
+
+    assert human.intent is CallIntent.HUMAN_REQUEST
+    assert spam.intent is CallIntent.SPAM
+
+
+@pytest.mark.parametrize(
+    "transcript",
+    [
+        "This is not an emergency",
+        "Emergency nahi hai",
+        "Koi emergency nahi hai",
+        "Not urgent, just calling to confirm",
+    ],
+)
+def test_negated_urgency_does_not_trigger_urgent_classification(transcript: str) -> None:
+    result = CallerClassifier().classify(transcript)
+
+    assert result.urgency_score == 0.0
+    assert result.intent is not CallIntent.URGENT
+
+
+def test_negation_in_previous_sentence_does_not_cancel_later_emergency() -> None:
+    result = CallerClassifier().classify(
+        "I am not sure what happened. This is an emergency."
+    )
+
+    assert result.intent is CallIntent.URGENT
+
+
+def test_routine_negation_phrase_is_still_classified_as_routine() -> None:
+    result = CallerClassifier().classify("Koi jaldi nahi, bas confirm karna tha")
+
+    assert result.intent is CallIntent.ROUTINE
+
+
 def test_classifier_leaves_unmatched_text_unknown() -> None:
     result = CallerClassifier().classify("Hello, I wanted to ask about tomorrow")
     assert result.intent is CallIntent.UNKNOWN
