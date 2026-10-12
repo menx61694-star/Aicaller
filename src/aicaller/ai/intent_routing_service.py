@@ -4,11 +4,7 @@ from dataclasses import dataclass
 
 from aicaller.ai.classification import CallerClassification, CallerClassifier
 from aicaller.ai.intent import IntentContext, IntentContextStore, IntentError
-from aicaller.ai.intent_routing import (
-    IntentRouter,
-    IntentRoutingDecision,
-    IntentRoutingError,
-)
+from aicaller.ai.intent_routing import IntentRouter, IntentRoutingDecision
 from aicaller.ai.policy import PolicyContext, PolicyContextStore, PolicyError
 
 
