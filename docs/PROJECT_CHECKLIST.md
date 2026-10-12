@@ -105,15 +105,15 @@
 - [ ] Phase 3 completion audit
 
 ## Phase 4 — Barge-in
-- [ ] Speech detection during TTS
-- [ ] TTS cancellation
-- [ ] Audio-buffer flush
-- [ ] Caller speech capture
-- [ ] Context preservation
-- [ ] Repeated interruption handling
-- [ ] Barge-in latency measurement
-- [ ] Phase 4 tests
-- [ ] Phase 4 completion audit
+- [x] Speech detection during TTS — consecutive-speech/confidence gate implemented and CI-tested; real VAD tuning on provider audio pending
+- [x] TTS cancellation — idempotent cancellation signal implemented and CI-tested; actual provider stream cancellation wiring remains runtime-dependent
+- [x] Audio-buffer flush — pending outbound TTS frames discarded and sequence cursor reset; CI-tested
+- [x] Caller speech capture — bounded normalized PCM frames captured with stream/timing validation; CI-tested
+- [x] Context preservation — interrupted utterance and TTS generation retained in a single-use context store; CI-tested
+- [x] Repeated interruption handling — generation tracking and interruption cap implemented; rejected over-limit events no longer mutate controller state; CI-tested in workflow #127
+- [x] Barge-in latency measurement — ordered detection/cancellation/flush timestamps and duration calculation implemented; deterministic tests pass; production latency measurement pending
+- [x] Phase 4 tests — component-chain integration test plus focused tests passed in workflow #127 on commit `bb1d2d8dc26cec5b1b16bcc27532a56c8b839d2e`; subsequent audit/checklist documentation is still running through CI
+- [ ] Phase 4 completion audit — audit document created; final documentation workflow and real provider runtime gate remain pending
 
 ## Phase 5 — Intent & Routing
 - [ ] Caller classification
