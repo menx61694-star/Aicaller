@@ -6,7 +6,10 @@ import pytest
 from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.ai.session import RealtimeAISession
 from aicaller.audio.format import AudioEncoding, AudioFormat, NormalizedAudioFrame
-from aicaller.audio.mulaw import encode_pcm16le_to_mulaw, encode_utterance_pcm16le_to_mulaw
+from aicaller.audio.mulaw import (
+    encode_pcm16le_to_mulaw,
+    encode_utterance_pcm16le_to_mulaw,
+)
 from aicaller.audio.utterance import AudioUtterance
 from aicaller.domain.call import CallState
 from aicaller.services.call_repository import InMemoryCallRepository
