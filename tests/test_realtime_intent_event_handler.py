@@ -14,6 +14,14 @@ from aicaller.services.realtime_intent_event_handler import (
 )
 
 
+class FakeHumanEscalationAdapter:
+    def start_human_ring(self, provider_call_id: str, destination: str) -> None:
+        return None
+
+    def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
+        return None
+
+
 def make_handler(state: CallState = CallState.AI_CALL):
     calls = CallService(InMemoryCallRepository())
     call = calls.create_incoming("call-realtime-intent", "+911234567890")
@@ -29,6 +37,8 @@ def make_handler(state: CallState = CallState.AI_CALL):
         "stream-rt-1",
         calls,
         routing,
+        human_escalation_adapter=FakeHumanEscalationAdapter(),
+        human_destination="+911234567890",
     )
     return RealtimeIntentEventHandler(session, coordinator), calls, call.call_id, routing
 
@@ -87,6 +97,8 @@ def test_handler_rejects_mismatched_session_and_call_stream() -> None:
         "expected-stream",
         calls,
         IntentRoutingService(),
+        human_escalation_adapter=FakeHumanEscalationAdapter(),
+        human_destination="+911234567890",
     )
 
     with pytest.raises(RealtimeIntentEventHandlerError, match="stream ids do not match"):
