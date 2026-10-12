@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Protocol
 
 from aicaller.ai.session import RealtimeAISession
@@ -23,9 +24,8 @@ class RealtimeCallWorkerError(RuntimeError):
 class RealtimeCallWorker:
     """Join utterance submission and transcript routing for one call stream.
 
-    Socket creation and authentication are deliberately injected through the
-    transport contract, keeping API credentials and network lifecycle outside
-    the deterministic call coordinator.
+    Socket creation, authentication, and provider-specific audio encoding are
+    injected, keeping network lifecycle outside the deterministic coordinator.
     """
 
     def __init__(
@@ -33,17 +33,25 @@ class RealtimeCallWorker:
         session: RealtimeAISession,
         event_handler: RealtimeIntentEventHandler,
         transport: RealtimeTransport,
+        audio_encoder: Callable[[AudioUtterance], AudioUtterance] | None = None,
     ) -> None:
         if session.stream_sid != event_handler.session.stream_sid:
             raise RealtimeCallWorkerError("worker session and event handler mismatch")
         self.session = session
         self.event_handler = event_handler
         self.transport = transport
+        self.audio_encoder = audio_encoder or (lambda utterance: utterance)
 
     async def send_utterance(self, utterance: AudioUtterance) -> None:
         if utterance.stream_sid != self.session.stream_sid:
             raise RealtimeCallWorkerError("utterance stream does not match worker stream")
-        append_message, commit_message = self.session.build_audio_messages(utterance)
+        try:
+            encoded_utterance = self.audio_encoder(utterance)
+        except Exception as exc:
+            raise RealtimeCallWorkerError("failed to encode utterance for realtime transport") from exc
+        if encoded_utterance.stream_sid != self.session.stream_sid:
+            raise RealtimeCallWorkerError("encoded utterance stream does not match worker stream")
+        append_message, commit_message = self.session.build_audio_messages(encoded_utterance)
         try:
             await self.transport.send(append_message)
             await self.transport.send(commit_message)
