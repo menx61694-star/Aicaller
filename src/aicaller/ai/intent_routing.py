@@ -50,9 +50,9 @@ class IntentRoutingDecision:
 
 
 class IntentRouter:
-    """Applies explicit, configurable precedence to deterministic classifier output.
+    """Apply explicit score thresholds and precedence to classifier output.
 
-    Urgency and explicit human requests outrank spam indicators so a mixed
+    Urgency and explicit human-request scores outrank spam signals so a mixed
     transcript is not silently blocked. Automatic spam blocking is opt-in.
     """
 
@@ -66,10 +66,7 @@ class IntentRouter:
             if not 0.0 <= score <= 1.0:
                 raise IntentRoutingError("classification scores must be between 0 and 1")
 
-        if (
-            result.urgency_score >= self.config.urgent_escalation_threshold
-            or result.intent is CallIntent.URGENT
-        ):
+        if result.urgency_score >= self.config.urgent_escalation_threshold:
             return IntentRoutingDecision(
                 PolicyAction.REQUEST_HUMAN,
                 RoutingReason.URGENT_ESCALATION,
@@ -77,10 +74,7 @@ class IntentRouter:
                 max(result.confidence, result.urgency_score),
                 requires_confirmation=False,
             )
-        if (
-            result.human_request_score >= self.config.human_request_threshold
-            or result.intent is CallIntent.HUMAN_REQUEST
-        ):
+        if result.human_request_score >= self.config.human_request_threshold:
             return IntentRoutingDecision(
                 PolicyAction.REQUEST_HUMAN,
                 RoutingReason.HUMAN_REQUEST,
@@ -115,7 +109,9 @@ class IntentRouter:
         if result.intent in {CallIntent.ROUTINE, CallIntent.UNKNOWN, CallIntent.SPAM}:
             return IntentRoutingDecision(
                 PolicyAction.CONTINUE_AI,
-                RoutingReason.ROUTINE_CONTINUE if result.intent is CallIntent.ROUTINE else RoutingReason.UNKNOWN_REVIEW,
+                RoutingReason.ROUTINE_CONTINUE
+                if result.intent is CallIntent.ROUTINE
+                else RoutingReason.UNKNOWN_REVIEW,
                 result.intent,
                 result.confidence,
                 requires_confirmation=result.intent in {CallIntent.UNKNOWN, CallIntent.SPAM},
