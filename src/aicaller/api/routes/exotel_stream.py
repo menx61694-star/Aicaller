@@ -12,11 +12,11 @@ from aicaller.adapters.telephony.exotel_stream import (
     ExotelStreamAdapter,
     ExotelStreamEventType,
 )
+from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.ai.openai_realtime_transport import (
     OpenAIRealtimeTranscriptionTransport,
     OpenAIRealtimeTransportError,
 )
-from aicaller.ai.intent_routing_service import IntentRoutingService
 from aicaller.ai.session import RealtimeAISession
 from aicaller.audio.aec import NLMSAcousticEchoCanceller
 from aicaller.audio.aec_reference import AECReferenceBuffer
