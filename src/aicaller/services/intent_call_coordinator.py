@@ -84,7 +84,7 @@ class IntentCallCoordinator:
                     provider_call_id,
                     self.human_destination,
                 )
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError, TypeError) as exc:
                 return CoordinatedIntentResult(
                     evaluation,
                     current,
@@ -113,7 +113,7 @@ class IntentCallCoordinator:
                     provider_call_id,
                     self.human_destination,
                 )
-            except Exception as exc:
+            except (RuntimeError, OSError, ValueError, TypeError) as exc:
                 return CoordinatedIntentResult(
                     evaluation,
                     current,
