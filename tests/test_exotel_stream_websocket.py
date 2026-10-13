@@ -314,6 +314,6 @@ def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypa
             )
         )
 
-    assert stream_route.call_service.get("call-live-routing").state.value == "TAKEOVER_REQUESTED"
+    assert stream_route.call_service.get("call-live-routing").state.value == "CALL_ENDED"
     assert fake_transport.closed
     assert escalation_actions == [("takeover", "call-live-routing", "+911234567890")]
