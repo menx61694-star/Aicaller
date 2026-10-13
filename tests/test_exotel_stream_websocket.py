@@ -293,7 +293,7 @@ def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypa
         deadline = time.monotonic() + 2
         while time.monotonic() < deadline:
             call = stream_route.call_service.get("call-live-routing")
-            if call is not None and call.state.value == "takeover_requested":
+            if call is not None and call.state.value == "TAKEOVER_REQUESTED":
                 break
             time.sleep(0.01)
         else:
@@ -310,7 +310,7 @@ def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypa
             )
         )
 
-    assert stream_route.call_service.get("call-live-routing").state.value == "takeover_requested"
+    assert stream_route.call_service.get("call-live-routing").state.value == "TAKEOVER_REQUESTED"
     assert fake_transport.closed
     assert "realtime intent routing evaluated" in caplog.text
     assert "request_human" in caplog.text
