@@ -27,7 +27,8 @@
 - Workflow #201 passed on commit `6572f71cdda315e1439955ac5165174b0ffb269f`: route-level final urgent transcript routing test passed.
 - Workflow #207 passed on commit `4bce13e652bf54843be1ea49c315a1b09bc11ceb`: **222 tests passed**, one third-party deprecation warning, and `ruff check .` passed.
 - Workflow #214 passed on commit `7cf803ed1a30be13a72df5cbe10ff860fa310ea4`: **240 tests passed**, one third-party deprecation warning, and `ruff check .` passed. Includes the expanded multilingual classifier cases and corrected-urgency regression.
-- Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38428526564
+- Workflow #217 passed on commit `e3981d296e8b86516885c1a351e0a32c9c59eb93`: **240 tests passed**, one third-party Starlette/httpx deprecation warning, and `ruff check .` passed. This run includes the expanded spam phrase and corrective-urgency regression cases.
+- Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38431909027
 
 ## Limits / remaining work
 
