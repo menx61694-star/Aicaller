@@ -126,8 +126,9 @@
 - [x] Routing rules — live AgentStream completed utterances now hand off to OpenAI Realtime transcription, then final transcript → classifier/router → coordinator; CI-tested with a mocked transport
 - [x] Rule precedence — urgency and explicit human request outrank spam; threshold and precedence regressions tested
 - [x] Human escalation — provider action must succeed before state transition; Exotel ring/takeover remains fail-closed pending account-specific bridge implementation
-- [x] Phase 5 tests — workflow #196 passed on commit `5f1662fa4f91e8e6d67c70ca8bb0704139f985a2`; 219 passed, Ruff clean
-- [ ] Phase 5 completion audit — real OpenAI/Exotel runtime, account bridge configuration, and final regression audit remain pending
+- [x] Phase 5 tests — workflow #207 passed on commit `4bce13e652bf54843be1ea49c315a1b09bc11ceb`; 222 passed, Ruff clean. Includes route-level final urgent transcript → coordinator → provider action, provider-error fail-closed, and duplicate-takeover regression tests
+- [x] Provider validation runbook — `docs/PHASE_5_PROVIDER_VALIDATION.md` documents reproducible OpenAI handshake and live AgentStream/Exotel validation steps; documentation only, not runtime sign-off
+- [ ] Phase 5 completion audit — real OpenAI handshake, live Exotel AgentStream call, account-specific human ring/bridge action, real-call audio/latency validation, and final regression audit remain pending
 
 ## Phase 6 — Human Takeover
 - [ ] Takeover request
