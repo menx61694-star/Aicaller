@@ -107,3 +107,71 @@ def test_classifier_rejects_empty_text_and_invalid_thresholds() -> None:
         CallerClassifier().classify("  ")
     with pytest.raises(ClassificationError, match="between 0 and 1"):
         ClassificationThresholds(spam=1.1)
+
+
+@pytest.mark.parametrize(
+    "transcript",
+    [
+        "Madad karo, accident ho gaya",
+        "Mere paas jaan ka khatra hai",
+        "Hospital le chalo, bahut zaroori hai",
+        "मुझे तुरंत मदद चाहिए",
+        "यह आपातकाल है",
+    ],
+)
+def test_classifier_recognizes_additional_urgent_phrase_variants(transcript: str) -> None:
+    result = CallerClassifier().classify(transcript)
+
+    assert result.intent is CallIntent.URGENT
+    assert result.urgency_score >= CallerClassifier().thresholds.urgent
+
+
+@pytest.mark.parametrize(
+    "transcript",
+    [
+        "Please connect me to a representative",
+        "I need to talk to someone",
+        "Operator se baat karwa do",
+        "मुझे किसी इंसान से बात करनी है",
+        "ऑपरेटर से बात कराइए",
+    ],
+)
+def test_classifier_recognizes_human_request_variants(transcript: str) -> None:
+    result = CallerClassifier().classify(transcript)
+
+    assert result.intent is CallIntent.HUMAN_REQUEST
+    assert result.human_request_score >= CallerClassifier().thresholds.human_request
+
+
+@pytest.mark.parametrize(
+    "transcript",
+    [
+        "You have won a prize",
+        "Limited offer, press one",
+        "Aapne lakhon jeete",
+        "इनाम जीता है",
+        "मुफ्त रिचार्ज पाएं",
+    ],
+)
+def test_classifier_recognizes_additional_spam_phrase_variants(transcript: str) -> None:
+    result = CallerClassifier().classify(transcript)
+
+    assert result.spam_score >= CallerClassifier().thresholds.spam
+    assert result.intent is CallIntent.SPAM
+
+
+@pytest.mark.parametrize(
+    "transcript",
+    [
+        "No emergency here, I am calling to confirm tomorrow's time",
+        "Pehle laga urgent hai, lekin ab koi jaldi nahi",
+        "यह आपातकाल नहीं है, बस समय की पुष्टि करनी है",
+    ],
+)
+def test_nonurgent_context_does_not_override_explicit_routine_context(
+    transcript: str,
+) -> None:
+    result = CallerClassifier().classify(transcript)
+
+    assert result.urgency_score == 0.0
+    assert result.intent is CallIntent.ROUTINE
