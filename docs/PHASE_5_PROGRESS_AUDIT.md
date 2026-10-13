@@ -29,6 +29,8 @@
 - Workflow #214 passed on commit `7cf803ed1a30be13a72df5cbe10ff860fa310ea4`: **240 tests passed**, one third-party deprecation warning, and `ruff check .` passed. Includes the expanded multilingual classifier cases and corrected-urgency regression.
 - Workflow #217 passed on commit `e3981d296e8b86516885c1a351e0a32c9c59eb93`: **240 tests passed**, one third-party Starlette/httpx deprecation warning, and `ruff check .` passed. This run includes the expanded spam phrase and corrective-urgency regression cases.
 - Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38431909027
+- Workflow #223 passed on commit `62e0087ffd0a5c9ff708999b50a1e214348d5697`: **250 tests passed**, one third-party deprecation warning, and `ruff check .` passed. Added call-end transition coverage and verified AgentStream STOP now leaves the call in `CALL_ENDED`.
+- Latest lifecycle regression workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38435976523
 
 ## Limits / remaining work
 
