@@ -187,7 +187,7 @@ def test_agentstream_hands_completed_utterance_to_openai_worker(monkeypatch) -> 
 
 
 
-def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypatch, caplog) -> None:
+def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypatch) -> None:
     stream_route.adapter = ExotelStreamAdapter("key", "token")
     monkeypatch.setattr(stream_route.settings, "openai_api_key", "test-key")
     monkeypatch.setattr(stream_route.settings, "human_phone_number", "+911234567890")
@@ -228,14 +228,18 @@ def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypa
             assert api_key == "test-key"
             return fake_transport
 
+    escalation_actions: list[tuple[str, str, str]] = []
+
     class FakeHumanEscalationAdapter:
         def start_human_ring(self, provider_call_id: str, destination: str) -> None:
             assert provider_call_id == "call-live-routing"
             assert destination == "+911234567890"
+            escalation_actions.append(("ring", provider_call_id, destination))
 
         def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
             assert provider_call_id == "call-live-routing"
             assert destination == "+911234567890"
+            escalation_actions.append(("takeover", provider_call_id, destination))
 
     class OneFrameUtteranceBuffer:
         def __init__(self) -> None:
@@ -312,5 +316,4 @@ def test_agentstream_routes_final_urgent_transcript_through_coordinator(monkeypa
 
     assert stream_route.call_service.get("call-live-routing").state.value == "TAKEOVER_REQUESTED"
     assert fake_transport.closed
-    assert "realtime intent routing evaluated" in caplog.text
-    assert "request_human" in caplog.text
+    assert escalation_actions == [("takeover", "call-live-routing", "+911234567890")]
