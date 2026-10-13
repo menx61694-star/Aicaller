@@ -193,3 +193,20 @@ def test_unexpected_provider_exception_fails_closed_without_state_change() -> No
     assert result.call_session.state is CallState.AI_CALL
     assert not result.state_transitioned
     assert "ValueError" in result.state_transition_reason
+
+
+
+def test_repeated_urgent_transcripts_do_not_repeat_provider_takeover() -> None:
+    calls, call_id = create_call(CallState.AI_CALL)
+    adapter = FakeHumanEscalationAdapter()
+    instance = coordinator(call_id, calls, adapter)
+
+    first = instance.process_final_event(event("This is an emergency", sequence=1))
+    second = instance.process_final_event(event("This is an emergency", sequence=2))
+
+    assert first.call_session.state is CallState.TAKEOVER_REQUESTED
+    assert second.call_session.state is CallState.TAKEOVER_REQUESTED
+    assert first.state_transitioned
+    assert not second.state_transitioned
+    assert second.state_transition_reason == "human escalation already active or pending"
+    assert adapter.actions == [("takeover", call_id, "+911234567890")]
