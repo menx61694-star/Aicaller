@@ -57,7 +57,7 @@ class CallerClassifier:
     _SPAM = (
         "loan offer", "win a prize", "limited offer", "investment scheme", "press one",
         "loan ke liye", "inaam jeeta", "inaam jeetne", "lakhon jeete", "free recharge",
-        "इनाम जीता", "मुफ्त रिचार्ज",
+        "इनाम जीता", "मुफ्त रिचार्ज", "you have won a prize",
     )
     _ROUTINE = (
         "calling to confirm", "just checking in", "general inquiry", "general enquiry",
@@ -94,9 +94,21 @@ class CallerClassifier:
                     return True
                 before = normalized[max(0, index - 14) : index]
                 after = normalized[end : min(len(normalized), end + 12)]
-                # Keep negation local to the matched phrase; do not let a
-                # negation from a previous sentence cancel a later emergency.
-                if not cls._NEGATION.search(before) and not cls._NEGATION.search(after):
+                # A corrective contrast such as "urgent earlier, but not now"
+                # should not be treated as a current urgent signal.
+                tail = normalized[end:]
+                contrast = re.search(r"\\b(?:but|however|lekin|magar)\\b", tail)
+                corrected = False
+                if contrast:
+                    correction = tail[contrast.end() : contrast.end() + 36]
+                    corrected = bool(cls._NEGATION.search(correction))
+                # Keep ordinary negation local to the matched phrase; do not
+                # let a negation from a previous sentence cancel a later signal.
+                if (
+                    not cls._NEGATION.search(before)
+                    and not cls._NEGATION.search(after)
+                    and not corrected
+                ):
                     return True
                 start = index + 1
         return False
