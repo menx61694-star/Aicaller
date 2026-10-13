@@ -57,7 +57,7 @@ class CallerClassifier:
     _SPAM = (
         "loan offer", "win a prize", "limited offer", "investment scheme", "press one",
         "loan ke liye", "inaam jeeta", "inaam jeetne", "lakhon jeete", "free recharge",
-        "इनाम जीता", "मुफ्त रिचार्ज", "you have won a prize",
+        "इनाम जीता", "मुफ्त रिचार्ज", "you have won a prize", "you have won",
     )
     _ROUTINE = (
         "calling to confirm", "just checking in", "general inquiry", "general enquiry",
