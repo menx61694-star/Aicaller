@@ -97,7 +97,7 @@ class CallerClassifier:
                 # A corrective contrast such as "urgent earlier, but not now"
                 # should not be treated as a current urgent signal.
                 tail = normalized[end:]
-                contrast = re.search(r"\\b(?:but|however|lekin|magar)\\b", tail)
+                contrast = re.search(r"\b(?:but|however|lekin|magar)\b", tail)
                 corrected = False
                 if contrast:
                     correction = tail[contrast.end() : contrast.end() + 36]
