@@ -292,6 +292,21 @@ async def exotel_agentstream(websocket: WebSocket) -> None:
     except (ValueError, UnicodeDecodeError):
         await websocket.close(code=1003, reason="invalid AgentStream event")
     finally:
+        # A provider STOP or WebSocket disconnect ends this call's active
+        # lifecycle. Do not leave in-memory sessions stuck in RINGING/AI_CALL.
+        if provider_call_id is not None:
+            current = call_service.get(provider_call_id)
+            if current is not None and current.state not in {
+                CallState.CALL_ENDED,
+                CallState.POST_PROCESSING,
+            }:
+                try:
+                    call_service.transition(provider_call_id, CallState.CALL_ENDED)
+                except Exception:
+                    logger.exception(
+                        "could not mark disconnected AgentStream call as ended",
+                        extra={"call_id": provider_call_id, "call_state": current.state.value},
+                    )
         if realtime_reader_task is not None:
             realtime_reader_task.cancel()
             with suppress(asyncio.CancelledError):
