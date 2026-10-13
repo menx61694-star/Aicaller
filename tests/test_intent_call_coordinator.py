@@ -171,3 +171,25 @@ def test_coordinator_rejects_unknown_call() -> None:
 
     with pytest.raises(KeyError, match="missing"):
         coordinator_instance.process_final_event(event("Emergency"))
+
+
+
+def test_unexpected_provider_exception_fails_closed_without_state_change() -> None:
+    calls, call_id = create_call(CallState.AI_CALL)
+
+    class UnexpectedFailureAdapter:
+        def start_human_ring(self, provider_call_id: str, destination: str) -> None:
+            raise ValueError("provider payload rejected")
+
+        def request_human_takeover(self, provider_call_id: str, destination: str) -> None:
+            raise ValueError("provider payload rejected")
+
+    result = coordinator(
+        call_id,
+        calls,
+        UnexpectedFailureAdapter(),
+    ).process_final_event(event("This is an emergency"))
+
+    assert result.call_session.state is CallState.AI_CALL
+    assert not result.state_transitioned
+    assert "ValueError" in result.state_transition_reason
