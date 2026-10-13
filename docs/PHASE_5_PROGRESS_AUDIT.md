@@ -14,6 +14,7 @@
 - `HUMAN_PHONE_NUMBER` is now documented in `.env.example`. Exotel human ring/takeover still intentionally fails closed until account-specific bridge actions are implemented/configured.
 - Focused tests cover classification, precedence, provider-confirmed state transitions, cross-stream rejection, transcript-final gating, transport handshake, μ-law conversion, worker behavior, AgentStream utterance handoff, and a route-level final urgent transcript → coordinator → provider-action integration path. Additional regressions verify unexpected provider exceptions fail closed and repeated urgent events do not repeat takeover actions.
 - `docs/PHASE_5_PROVIDER_VALIDATION.md` documents the real OpenAI handshake, live AgentStream routing, and account-specific Exotel bridge sign-off procedure. This runbook is not evidence that those live checks have passed.
+- Expanded classifier regression coverage for additional Hindi/English urgent, human-request, spam, and routine variants. A corrected-urgency case exposed an incorrectly escaped contrast regex; it was fixed and re-verified in CI.
 
 ## CI verification
 
@@ -25,7 +26,8 @@
 - Workflow #196 passed on commit `5f1662fa4f91e8e6d67c70ca8bb0704139f985a2`: 219 tests passed and Ruff clean.
 - Workflow #201 passed on commit `6572f71cdda315e1439955ac5165174b0ffb269f`: route-level final urgent transcript routing test passed.
 - Workflow #207 passed on commit `4bce13e652bf54843be1ea49c315a1b09bc11ceb`: **222 tests passed**, one third-party deprecation warning, and `ruff check .` passed.
-- Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38418643605
+- Workflow #214 passed on commit `7cf803ed1a30be13a72df5cbe10ff860fa310ea4`: **240 tests passed**, one third-party deprecation warning, and `ruff check .` passed. Includes the expanded multilingual classifier cases and corrected-urgency regression.
+- Latest verified code workflow: https://github.com/menx61694-star/Aicaller/actions/runs/38428526564
 
 ## Limits / remaining work
 
